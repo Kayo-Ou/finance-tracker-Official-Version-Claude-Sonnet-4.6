@@ -594,7 +594,8 @@
         afterDatasetsDraw(chart) {
           const { ctx, chartArea, scales } = chart;
           const xScale = scales.x;
-          if (!chartArea || !xScale || !momYearPoints.length) return;
+          const yearPoints = chart.options.plugins?.momYearSeparators?.yearPoints || [];
+          if (!chartArea || !xScale || !yearPoints.length) return;
 
           ctx.save();
           ctx.strokeStyle = 'rgba(0,0,0,0.15)';
@@ -604,17 +605,15 @@
           ctx.textBaseline = 'bottom';
           ctx.font = '600 11px Segoe UI, sans-serif';
 
-          momYearPoints.forEach(point => {
+          yearPoints.forEach(point => {
             const separatorX = point.index === 0
-              ? xScale.getPixelForValue(0)
+              ? chartArea.left
               : (xScale.getPixelForValue(point.index) + xScale.getPixelForValue(point.index - 1)) / 2;
 
-            if (point.index > 0) {
-              ctx.beginPath();
-              ctx.moveTo(separatorX, chartArea.top);
-              ctx.lineTo(separatorX, chartArea.bottom);
-              ctx.stroke();
-            }
+            ctx.beginPath();
+            ctx.moveTo(separatorX, chartArea.top);
+            ctx.lineTo(separatorX, chartArea.bottom);
+            ctx.stroke();
 
             ctx.fillText(String(point.year), separatorX, chartArea.top - 6);
           });
@@ -647,7 +646,12 @@
         layout: {
           padding: { top: 20 }
         },
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          momYearSeparators: {
+            yearPoints: momYearPoints
+          }
+        },
         scales: {
           x: {
             grid: { color: gridColor, drawBorder: false },
