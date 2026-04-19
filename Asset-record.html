@@ -453,13 +453,7 @@
         </div>
         <div class="input-group">
           <label>Date</label>
-          <div class="select-wrapper">
-            <select>
-              <option>25 January 2025</option>
-              <option>24 January 2025</option>
-              <option>23 January 2025</option>
-            </select>
-          </div>
+          <input type="date" id="inputDate" />
         </div>
 
         <div class="input-group">
@@ -515,61 +509,7 @@
               <th>Operation</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>01.</td>
-              <td>$100,000</td>
-              <td>$40,500</td>
-              <td>8 Months</td>
-              <td>12%</td>
-              <td>$2,000 / 月</td>
-              <td><button class="btn-delete">Delete</button></td>
-            </tr>
-            <tr>
-              <td>02.</td>
-              <td>$500,000</td>
-              <td>$250,000</td>
-              <td>36 Months</td>
-              <td>10%</td>
-              <td>$8,000 / 月</td>
-              <td><button class="btn-delete">Delete</button></td>
-            </tr>
-            <tr>
-              <td>03.</td>
-              <td>$900,000</td>
-              <td>$40,500</td>
-              <td>12 Months</td>
-              <td>12%</td>
-              <td>$5,000 / 月</td>
-              <td><button class="btn-delete">Delete</button></td>
-            </tr>
-            <tr>
-              <td>04.</td>
-              <td>$50,000</td>
-              <td>$40,500</td>
-              <td>25 Months</td>
-              <td>5%</td>
-              <td>$2,000 / 月</td>
-              <td><button class="btn-delete">Delete</button></td>
-            </tr>
-            <tr>
-              <td>05.</td>
-              <td>$120,000</td>
-              <td>$55,000</td>
-              <td>18 Months</td>
-              <td>8%</td>
-              <td>$3,500 / 月</td>
-              <td><button class="btn-delete">Delete</button></td>
-            </tr>
-            <tr>
-              <td>06.</td>
-              <td>$300,000</td>
-              <td>$90,000</td>
-              <td>24 Months</td>
-              <td>11%</td>
-              <td>$6,000 / 月</td>
-              <td><button class="btn-delete">Delete</button></td>
-            </tr>
+          <tbody id="recordTableBody">
           </tbody>
         </table>
       </div>
@@ -577,7 +517,7 @@
   </main>
 
   <script>
-    // 导航交互
+    // ── 导航 ──
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', () => {
         const links = {
@@ -590,7 +530,33 @@
       });
     });
 
-    // Tab 切换
+    // ── 头像 ──
+    const savedAvatar = localStorage.getItem('userAvatar');
+    if (savedAvatar) {
+      document.getElementById('avatarDefault').style.display = 'none';
+      const img = document.getElementById('avatarImg');
+      img.src = savedAvatar;
+      img.style.display = 'block';
+    }
+    document.getElementById('avatarInput').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('avatarDefault').style.display = 'none';
+        const img = document.getElementById('avatarImg');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        localStorage.setItem('userAvatar', e.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ── 日期默认今天 ──
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('inputDate').value = today;
+
+    // ── Tab 切换 ──
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -598,37 +564,64 @@
       });
     });
 
-    // Delete 删除行（淡出动画）
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const row = btn.closest('tr');
-        row.style.transition = 'opacity 0.3s';
-        row.style.opacity = '0';
-        setTimeout(() => row.remove(), 300);
-      });
-    });
-  // 头像：读取 + 上传（与第一页共享 localStorage）
-const savedAvatar = localStorage.getItem('userAvatar');
-if (savedAvatar) {
-  document.getElementById('avatarDefault').style.display = 'none';
-  const img = document.getElementById('avatarImg');
-  img.src = savedAvatar;
-  img.style.display = 'block';
-}
+    // ── 数据 ──
+    let records = JSON.parse(localStorage.getItem('assetRecords') || '[]');
 
-document.getElementById('avatarInput').addEventListener('change', function() {
-  const file = this.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('avatarDefault').style.display = 'none';
-    const img = document.getElementById('avatarImg');
-    img.src = e.target.result;
-    img.style.display = 'block';
-    localStorage.setItem('userAvatar', e.target.result);
-  };
-  reader.readAsDataURL(file);
-});
+    function renderTable() {
+      const tbody = document.getElementById('recordTableBody');
+      tbody.innerHTML = '';
+      records.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td>${String(i + 1).padStart(2, '0')}.</td>
+        <td>${r.date}</td>
+        <td>${r.pinganBank}</td>
+        <td>${r.pinganSec}</td>
+        <td>${r.alipay}</td>
+        <td>${r.agriBank}</td>
+        <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+      `;
+        tbody.appendChild(tr);
+      });
+
+      // Delete 绑定
+      document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-index'));
+          const row = btn.closest('tr');
+          row.style.transition = 'opacity 0.3s';
+          row.style.opacity = '0';
+          setTimeout(() => {
+            records.splice(idx, 1);
+            localStorage.setItem('assetRecords', JSON.stringify(records));
+            renderTable();
+          }, 300);
+        });
+      });
+    }
+
+    renderTable();
+
+    // ── ADD 按钮 ──
+    document.querySelector('.btn-add').addEventListener('click', () => {
+      const date = document.getElementById('inputDate').value;
+      const inputs = document.querySelectorAll('.input-grid input[type="number"]');
+      const pinganBank = inputs[0].value || '0';
+      const pinganSec = inputs[1].value || '0';
+      const alipay = inputs[2].value || '0';
+      const agriBank = inputs[3].value || '0';
+
+      if (!date) { alert('请选择日期！'); return; }
+
+      records.push({ date, pinganBank, pinganSec, alipay, agriBank });
+      localStorage.setItem('assetRecords', JSON.stringify(records));
+
+      // 清空输入框，日期恢复今天
+      inputs.forEach(inp => inp.value = '');
+      document.getElementById('inputDate').value = today;
+
+      renderTable();
+    });
   </script>
 </body>
 
