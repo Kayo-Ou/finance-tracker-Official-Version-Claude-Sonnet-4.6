@@ -360,7 +360,41 @@
   <script>
     const gridColor = 'rgba(0,0,0,0.06)';
     const tickColor = '#a0aec0';
-    const years = ['2016', '2017', '2018', '2019', '2020', '2021'];
+    const MILLISECONDS_PER_YEAR = 1000 * 60 * 60 * 24 * 365.25;
+    let records = [];
+    try {
+      const rawRecords = JSON.parse(localStorage.getItem('assetRecords') || '[]');
+      records = Array.isArray(rawRecords) ? rawRecords : [];
+    } catch (e) {
+      records = [];
+    }
+    const parsedRecords = records.map(r => {
+      const pb = parseFloat(r.pinganBank) || 0;
+      const ps = parseFloat(r.pinganSec) || 0;
+      const ali = parseFloat(r.alipay) || 0;
+      const agri = parseFloat(r.agriBank) || 0;
+      const pbf = parseFloat(r.pinganBankFund) || 0;
+      const psf = parseFloat(r.pinganSecFund) || 0;
+      const alif = parseFloat(r.alipayFund) || 0;
+      const sf = parseFloat(r.sfStock) || 0;
+      const xqf = parseFloat(r.xueqiuFund) || 0;
+
+      const cashFlow = (pb - pbf) + (ps - psf - sf) + (ali - alif) + agri;
+      const fund = pbf + psf + alif + xqf;
+      const stock = sf;
+      const total = cashFlow + fund + stock;
+
+      return {
+        date: r.date || '',
+        cashFlow,
+        fund,
+        stock,
+        total
+      };
+    });
+    const dates = parsedRecords.map(r => r.date);
+    const totals = parsedRecords.map(r => r.total);
+    const cashFlows = parsedRecords.map(r => r.cashFlow);
 
     function axisConfig() {
       return {
@@ -373,19 +407,24 @@
           ticks: {
             color: tickColor,
             font: { size: 11 },
-            callback: v => '$' + v.toLocaleString()
+            callback: v => '¥' + v.toLocaleString()
           }
         }
       };
+    }
+
+    function formatPercentLabel(name, value, sum) {
+      if (!sum) return `${name} 0%`;
+      return `${name} ${Math.round((value / sum) * 100)}%`;
     }
 
     // ── 1. Total Assets ──
     new Chart(document.getElementById('totalAssetsChart'), {
       type: 'line',
       data: {
-        labels: years,
+        labels: dates,
         datasets: [{
-          data: [6000, 22000, 15000, 36000, 20000, 28000],
+          data: totals,
           borderColor: '#FF6B9D',
           backgroundColor: 'transparent',
           borderWidth: 2.5,
@@ -405,13 +444,28 @@
     });
 
     // ── 2. Asset Distribution ──
+    const latestRecord = parsedRecords[parsedRecords.length - 1];
+    const latestCashFlow = latestRecord ? latestRecord.cashFlow : 0;
+    const latestFund = latestRecord ? latestRecord.fund : 0;
+    const latestStock = latestRecord ? latestRecord.stock : 0;
+    const pieTotal = latestCashFlow + latestFund + latestStock;
+    const pieLabels = latestRecord
+      ? [
+        formatPercentLabel('Cash Flow', latestCashFlow, pieTotal),
+        formatPercentLabel('Fund', latestFund, pieTotal),
+        formatPercentLabel('Stock', latestStock, pieTotal)
+      ]
+      : ['No data'];
+    const pieData = latestRecord ? [latestCashFlow, latestFund, latestStock] : [1];
+    const pieColors = latestRecord ? ['#8CC63F', '#F5A623', '#3B5BDB'] : ['#d9d9d9'];
+
     new Chart(document.getElementById('assetPieChart'), {
       type: 'pie',
       data: {
-        labels: ['Cash Flow 35%', 'Stock 41%', 'Fund 24%'],
+        labels: pieLabels,
         datasets: [{
-          data: [35, 41, 24],
-          backgroundColor: ['#8CC63F', '#3B5BDB', '#F5A623'],
+          data: pieData,
+          backgroundColor: pieColors,
           borderWidth: 2,
           borderColor: '#fff'
         }]
@@ -428,13 +482,43 @@
         }
       }
     });
+
+    // ── 2.1 Compound Growth Rate ──
+    const compoundValueEl = document.querySelector('.compound-value');
+    const firstRecord = parsedRecords[0];
+    const endRecord = latestRecord;
+
+    if (firstRecord && endRecord && firstRecord.total > 0 && endRecord.total > 0) {
+      const startDate = new Date(firstRecord.date);
+      const endDate = new Date(endRecord.date);
+      const yearsDiff = (endDate - startDate) / MILLISECONDS_PER_YEAR;
+
+      if (yearsDiff > 0) {
+        const cagr = Math.pow(endRecord.total / firstRecord.total, 1 / yearsDiff) - 1;
+        if (Number.isFinite(cagr)) {
+          const sign = cagr >= 0 ? '+' : '';
+          compoundValueEl.textContent = `${sign}${(cagr * 100).toFixed(2)}%`;
+          compoundValueEl.style.color = cagr >= 0 ? '#52C41A' : '#e53e3e';
+        } else {
+          compoundValueEl.textContent = '--';
+          compoundValueEl.style.color = '#7b8db0';
+        }
+      } else {
+        compoundValueEl.textContent = '--';
+        compoundValueEl.style.color = '#7b8db0';
+      }
+    } else {
+      compoundValueEl.textContent = '--';
+      compoundValueEl.style.color = '#7b8db0';
+    }
+
     // ── 3. Cash Flow ──
     new Chart(document.getElementById('cashFlowChart'), {
       type: 'line',
       data: {
-        labels: years,
+        labels: dates,
         datasets: [{
-          data: [10000, 20000, 26000, 31000, 25000, 18000],
+          data: cashFlows,
           borderColor: '#52C41A',
           backgroundColor: 'transparent',
           borderWidth: 2.5,
@@ -451,9 +535,21 @@
     });
 
     // ── 4. Month-on-month Growth ──
-    const momLabels = Array.from({ length: 14 }, (_, i) => `M${i + 1}`);
-    const increase = [450, 0, 320, 460, 0, 400, 0, 110, 0, 0, 380, 0, 390, 0];
-    const decrease = [0, 120, 0, 0, 80, 0, 100, 0, 60, 90, 0, 50, 0, 30];
+    const momLabels = [];
+    const increase = [];
+    const decrease = [];
+
+    for (let i = 1; i < parsedRecords.length; i++) {
+      const diff = parsedRecords[i].total - parsedRecords[i - 1].total;
+      momLabels.push(parsedRecords[i].date);
+      if (diff >= 0) {
+        increase.push(diff);
+        decrease.push(0);
+      } else {
+        increase.push(0);
+        decrease.push(diff);
+      }
+    }
 
     new Chart(document.getElementById('momChart'), {
       type: 'bar',
@@ -469,7 +565,7 @@
           },
           {
             label: 'Decrease',
-            data: decrease.map(v => -v),
+            data: decrease,
             backgroundColor: '#00D4B8',
             borderRadius: 6,
             barPercentage: 0.5
@@ -487,7 +583,11 @@
           },
           y: {
             grid: { color: gridColor, drawBorder: false },
-            ticks: { color: tickColor, font: { size: 11 } }
+            ticks: {
+              color: tickColor,
+              font: { size: 11 },
+              callback: v => '¥' + v.toLocaleString()
+            }
           }
         }
       }
