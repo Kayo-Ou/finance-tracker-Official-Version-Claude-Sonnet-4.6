@@ -669,7 +669,8 @@
       // Total account value
       const tbody = document.getElementById('recordTableBody');
       tbody.innerHTML = '';
-      records.forEach((r, i) => {
+      records.slice().reverse().forEach((r, i) => {
+        const originalIndex = records.length - 1 - i;
         const tr = document.createElement('tr');
         tr.innerHTML = `
         <td>${String(i + 1).padStart(2, '0')}.</td>
@@ -678,7 +679,7 @@
         <td>${r.pinganSec}</td>
         <td>${r.alipay}</td>
         <td>${r.agriBank}</td>
-        <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+        <td><button class="btn-delete" data-index="${originalIndex}">Delete</button></td>
       `;
         tbody.appendChild(tr);
       });
@@ -687,7 +688,8 @@
       // Fund market value
       const fundBody = document.getElementById('fundTableBody');
       fundBody.innerHTML = '';
-      records.forEach((r, i) => {
+      records.slice().reverse().forEach((r, i) => {
+        const originalIndex = records.length - 1 - i;
         const tr = document.createElement('tr');
         tr.innerHTML = `
         <td>${String(i + 1).padStart(2, '0')}.</td>
@@ -696,7 +698,7 @@
         <td>${r.pinganSecFund}</td>
         <td>${r.alipayFund}</td>
         <td>${r.xueqiuFund}</td>
-        <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+        <td><button class="btn-delete" data-index="${originalIndex}">Delete</button></td>
       `;
         fundBody.appendChild(tr);
       });
@@ -705,13 +707,14 @@
       // Stock value
       const stockBody = document.getElementById('stockTableBody');
       stockBody.innerHTML = '';
-      records.forEach((r, i) => {
+      records.slice().reverse().forEach((r, i) => {
+        const originalIndex = records.length - 1 - i;
         const tr = document.createElement('tr');
         tr.innerHTML = `
         <td>${String(i + 1).padStart(2, '0')}.</td>
         <td>${r.date}</td>
         <td>${r.sfStock}</td>
-        <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+        <td><button class="btn-delete" data-index="${originalIndex}">Delete</button></td>
       `;
         stockBody.appendChild(tr);
       });
@@ -720,7 +723,8 @@
       // Accounting stats
       const accountingBody = document.getElementById('accountingTableBody');
       accountingBody.innerHTML = '';
-      records.forEach((r, i) => {
+      records.slice().reverse().forEach((r, i) => {
+        const originalIndex = records.length - 1 - i;
         const pb = parseFloat(r.pinganBank) || 0;
         const ps = parseFloat(r.pinganSec) || 0;
         const ali = parseFloat(r.alipay) || 0;
@@ -744,7 +748,7 @@
     <td>${fund.toFixed(2)}</td>
     <td>${stock.toFixed(2)}</td>
     <td>${total.toFixed(2)}</td>
-    <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+    <td><button class="btn-delete" data-index="${originalIndex}">Delete</button></td>
   `;
         accountingBody.appendChild(tr);
       });
