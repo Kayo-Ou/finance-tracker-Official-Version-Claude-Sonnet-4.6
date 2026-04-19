@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Personal Finance Stats</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f6fa;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── 侧边栏 ── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 0;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 24px 36px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d3a6b;
+    }
+
+    .sidebar-logo span.icon { font-size: 22px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      font-size: 14px;
+      color: #7b8db0;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .nav-item:hover { color: #2d3a6b; }
+
+    .nav-item.active {
+      color: #2d3a6b;
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 32px;
+      background: #2d3a6b;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ── 主内容 ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 36px;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-shrink: 0;
+    }
+
+    .topbar h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a2340;
+    }
+
+    .avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c9a96e, #a0784a);
+      border: 2px solid #e8ecf5;
+      flex-shrink: 0;
+    }
+
+    /* ── 图表网格 ── */
+    .chart-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 20px;
+      min-height: 0;
+    }
+
+    .chart-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .chart-card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a2340;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .chart-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── 饼图卡片：左右各占50%，等高对齐 ── */
+    .pie-body {
+      flex: 1;
+      display: flex;
+      align-items: stretch;   /* 两侧等高 */
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .pie-wrap {
+      flex: 1;                /* 占50% */
+      position: relative;
+      min-height: 0;
+      min-width: 0;
+    }
+
+    /* 复合增长率卡片：与饼图等宽等高 */
+    .compound-card {
+      flex: 1;                /* 占50% */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: #f4f5fb;
+      border-radius: 14px;
+      padding: 20px;
+      min-width: 0;
+    }
+
+    .compound-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #e0e4f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+    }
+
+    .compound-label {
+      font-size: 13px;
+      color: #7b8db0;
+      text-align: center;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .compound-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2d3a6b;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── 柱状图图例 ── */
+    .bar-legend {
+      display: flex;
+      gap: 16px;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #7b8db0;
+      flex-shrink: 0;
+    }
+
+    .legend-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="icon">🏛️</span>
+    <span>Personal finance stats</span>
+  </div>
+
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+    Real-time Dashboard
+  </div>
+
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <path d="M8 17V13M12 17V9M16 17V11"/>
+    </svg>
+    Asset record
+  </div>
+
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9"/>
+      <path d="M16 3l5 5-5 5"/>
+    </svg>
+    All-weather portfolio
+  </div>
+</aside>
+
+<!-- 主内容 -->
+<main class="main">
+  <div class="topbar">
+    <h1>Dashboard</h1>
+    <div class="avatar-placeholder"></div>
+  </div>
+
+  <div class="chart-grid">
+
+    <!-- 1. Total Assets 折线图 -->
+    <div class="chart-card">
+      <h2>Total Assets</h2>
+      <div class="chart-wrap">
+        <canvas id="totalAssetsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 2. Asset Distribution 饼图 + 复合增长率 -->
+    <div class="chart-card">
+      <h2>Asset Distribution</h2>
+      <div class="pie-body">
+
+        <!-- 左：饼图 -->
+        <div class="pie-wrap">
+          <canvas id="assetPieChart"></canvas>
+        </div>
+
+        <!-- 右：复合增长率卡片，与饼图等大 -->
+        <div class="compound-card">
+          <div class="compound-icon">🔄</div>
+          <div class="compound-label">Compound<br>Growth Rate</div>
+          <div class="compound-value">+5.80%</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. Cash Flow 曲线图 -->
+    <div class="chart-card">
+      <h2>Cash Flow</h2>
+      <div class="chart-wrap">
+        <canvas id="cashFlowChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 4. Month-on-month Growth 柱状图 -->
+    <div class="chart-card">
+      <h2>Month-on-month Growth</h2>
+      <div class="bar-legend">
+        <span><span class="legend-dot" style="background:#FF6B9D"></span>Increase</span>
+        <span><span class="legend-dot" style="background:#00D4B8"></span>Decrease</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="momChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const gridColor = 'rgba(0,0,0,0.06)';
+  const tickColor = '#a0aec0';
+  const years = ['2016','2017','2018','2019','2020','2021'];
+
+  function axisConfig() {
+    return {
+      x: {
+        grid: { color: gridColor, drawBorder: false },
+        ticks: { color: tickColor, font: { size: 11 } }
+      },
+      y: {
+        grid: { color: gridColor, drawBorder: false },
+        ticks: {
+          color: tickColor,
+          font: { size: 11 },
+          callback: v => '$' + v.toLocaleString()
+        }
+      }
+    };
+  }
+
+  // ── 1. Total Assets ──
+  new Chart(document.getElementById('totalAssetsChart'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        data: [6000, 22000, 15000, 36000, 20000, 28000],
+        borderColor: '#FF6B9D',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: '#FF6B9D',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: axisConfig()
+    }
+  });
+
+  // ── 2. Asset Distribution ──
+  new Chart(document.getElementById('assetPieChart'), {
+    type: 'pie',
+    data: {
+      labels: ['Cash Flow 30%', '账单费用 15%', 'Stock 35%', 'Fund 20%'],
+      datasets: [{
+        data: [30, 15, 35, 20],
+        backgroundColor: ['#8CC63F', '#FF6B9D', '#3B5BDB', '#F5A623'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { font: { size: 11 }, color: '#7b8db0', boxWidth: 12 }
+        }
+      }
+    }
+  });
+
+  // ── 3. Cash Flow ──
+  new Chart(document.getElementById('cashFlowChart'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [{
+        data: [10000, 20000, 26000, 31000, 25000, 18000],
+        borderColor: '#52C41A',
+        backgroundColor: 'transparent',
+        borderWidth: 2.5,
+        pointRadius: 0,
+        tension: 0.5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: axisConfig()
+    }
+  });
+
+  // ── 4. Month-on-month Growth ──
+  const momLabels = Array.from({length: 14}, (_, i) => `M${i+1}`);
+  const increase  = [450,   0, 320, 460,  0, 400,   0, 110,  0,  0, 380,  0, 390,  0];
+  const decrease  = [  0, 120,   0,   0, 80,   0, 100,   0, 60, 90,   0, 50,   0, 30];
+
+  new Chart(document.getElementById('momChart'), {
+    type: 'bar',
+    data: {
+      labels: momLabels,
+      datasets: [
+        {
+          label: 'Increase',
+          data: increase,
+          backgroundColor: '#FF6B9D',
+          borderRadius: 6,
+          barPercentage: 0.5
+        },
+        {
+          label: 'Decrease',
+          data: decrease.map(v => -v),
+          backgroundColor: '#00D4B8',
+          borderRadius: 6,
+          barPercentage: 0.5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { color: tickColor, font: { size: 10 } }
+        },
+        y: {
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { color: tickColor, font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  // 导航交互
+  document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const links = {
+      'Real-time Dashboard': 'Dashboard.html',
+      'Asset record': 'asset-record.html',
+      'All-weather portfolio': 'all-weather-portfolio.html'
+    };
+    const text = item.textContent.trim();
+    if (links[text]) window.location.href = links[text];
+  });
+});
+</script>
+</body>
+</html>

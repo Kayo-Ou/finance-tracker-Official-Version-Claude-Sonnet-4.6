@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All-weather Portfolio - Personal Finance Stats</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f6fa;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 0;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 24px 36px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d3a6b;
+    }
+
+    .sidebar-logo span.icon { font-size: 22px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      font-size: 14px;
+      color: #7b8db0;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .nav-item:hover { color: #2d3a6b; }
+    .nav-item.active { color: #2d3a6b; font-weight: 600; }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 4px; height: 32px;
+      background: #2d3a6b;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 28px 28px 28px;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .topbar h1 { font-size: 26px; font-weight: 700; color: #1a2340; }
+
+    .avatar-placeholder {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c9a96e, #a0784a);
+      border: 2px solid #e8ecf5;
+      flex-shrink: 0;
+    }
+
+    .page-tabs {
+      display: flex;
+      border-bottom: 1.5px solid #e8ecf5;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .page-tab {
+      padding: 10px 32px 10px 4px;
+      font-size: 15px;
+      color: #7b8db0;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .page-tab:hover { color: #2d3a6b; }
+    .page-tab.active { color: #3b5bdb; font-weight: 600; }
+
+    .page-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1.5px; left: 0; right: 32px;
+      height: 2.5px;
+      background: #3b5bdb;
+      border-radius: 2px 2px 0 0;
+    }
+
+    .content-body {
+      flex: 1;
+      display: flex;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .left-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      flex: 0 0 62%;
+      min-height: 0;
+    }
+
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .chart-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .chart-card-header span { font-size: 15px; font-weight: 700; color: #1a2340; }
+    .more-btn { font-size: 16px; color: #b0bec5; cursor: pointer; letter-spacing: 2px; }
+
+    .chart-legend {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px 8px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    .legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+
+    .donut-wrap { position: relative; flex: 1; min-height: 0; }
+
+    .section-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .section-title { font-size: 15px; font-weight: 700; color: #1a2340; margin-bottom: 12px; flex-shrink: 0; }
+
+    .adj-table { width: 100%; border-collapse: collapse; }
+
+    .adj-table thead th {
+      font-size: 13px; font-weight: 600; color: #3b5bdb;
+      padding: 5px 8px; text-align: left;
+      border-bottom: 1px solid #f0f3fa;
+    }
+
+    .adj-table tbody td {
+      padding: 8px 8px; font-size: 13px; color: #4a5568;
+      border-bottom: 1px solid #f8f9fc;
+    }
+
+    .adj-table tbody tr:last-child td { border-bottom: none; }
+
+    /* ② 颜色对调：+ 红色，- 绿色 */
+    .ratio-pos { color: #e53e3e; font-weight: 600; }
+    .ratio-neg { color: #38a169; font-weight: 600; }
+
+    .add-form { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+
+    .input-group { display: flex; flex-direction: column; gap: 5px; }
+    .input-group label { font-size: 13px; color: #4a5568; font-weight: 500; }
+
+    .input-group input, .input-group select {
+      padding: 9px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px; color: #c0cce0;
+      background: #fff; outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus, .input-group select:focus {
+      border-color: #2d3a6b; color: #1a2340;
+    }
+
+    .select-wrapper { position: relative; }
+
+    .select-wrapper select {
+      width: 100%; cursor: pointer; color: #4a5568;
+      appearance: none; -webkit-appearance: none;
+    }
+
+    .select-wrapper::after {
+      content: '⌄';
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: #7b8db0; pointer-events: none;
+    }
+
+    .btn-add {
+      padding: 11px; background: #2d3a6b; color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      letter-spacing: 1px;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: auto;
+    }
+
+    .btn-add:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    .right-panel {
+      width: 380px;
+      flex-shrink: 0;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .record-list { flex: 1; overflow-y: auto; padding: 4px 0; }
+
+    .record-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid #f5f6fa;
+      transition: background 0.15s;
+    }
+
+    .record-item:hover { background: #fafbff; }
+    .record-item:last-child { border-bottom: none; }
+
+    .record-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .record-avatar svg { width: 20px; height: 20px; }
+
+    .record-info { flex: 1; min-width: 0; }
+    .record-name { font-size: 14px; font-weight: 600; color: #1a2340; white-space: nowrap; }
+    .record-sub { font-size: 12px; color: #3b5bdb; margin-top: 3px; }
+
+    .record-amount {
+      font-size: 14px; font-weight: 600; color: #1a2340;
+      flex-shrink: 0; margin-right: 10px; white-space: nowrap;
+    }
+
+    .btn-delete {
+      padding: 6px 16px; border-radius: 20px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      background: #fff; border: 1.5px solid #cbd5e0; color: #a0aec0;
+      flex-shrink: 0;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+
+    .btn-delete:hover { border-color: #e53e3e; color: #e53e3e; background: #fff5f5; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="icon">🏛️</span>
+    <span>Personal finance stats</span>
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+    Real-time Dashboard
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <path d="M8 17V13M12 17V9M16 17V11"/>
+    </svg>
+    Asset record
+  </div>
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9"/>
+      <path d="M16 3l5 5-5 5"/>
+    </svg>
+    All-weather portfolio
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <h1>All-weather portfolio</h1>
+    <div class="avatar-placeholder"></div>
+  </div>
+
+  <div class="page-tabs">
+    <div class="page-tab active" data-tab="pingan">Ping An Account</div>
+    <div class="page-tab" data-tab="snowball">Snowball Account</div>
+  </div>
+
+  <div class="content-body">
+    <div class="left-panel">
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span>Actual ratio</span>
+            <span class="more-btn">···</span>
+          </div>
+          <div class="chart-legend" id="actualLegend"></div>
+          <div class="donut-wrap">
+            <canvas id="actualRatioChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span>Target ratio</span>
+            <span class="more-btn">···</span>
+          </div>
+          <div class="chart-legend" id="targetLegend"></div>
+          <div class="donut-wrap">
+            <canvas id="targetRatioChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="section-card">
+          <div class="section-title">Adjustment Suggestions</div>
+          <table class="adj-table">
+            <thead>
+              <tr>
+                <th>No</th><th>Name</th><th>Adjusted value</th><th>Adjust ratio</th>
+              </tr>
+            </thead>
+            <tbody id="adjTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">Add record</div>
+          <div class="add-form">
+            <div class="input-group">
+              <label id="addRecordLabel">Ping An account's market value</label>
+              <input type="number" placeholder="0.00" />
+            </div>
+            <div class="input-group">
+              <label>Date</label>
+              <div class="select-wrapper">
+                <select>
+                  <option>25 January 2025</option>
+                  <option>24 January 2025</option>
+                  <option>23 January 2025</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-add">ADD</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="right-panel">
+      <div class="record-list" id="recordList"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const tabData = {
+    pingan: {
+      legends: [
+        { color: '#4fd1c5', label: '沪深300' },   /* ① 深青，避免与标普500重复 */
+        { color: '#1a3a6b', label: '中证500' },
+        { color: '#63b3ed', label: '中证1000' },
+        { color: '#a0aec0', label: '标普500' },
+        { color: '#7c3aed', label: '纳指100' },   /* ① 神紫色 */
+        { color: '#9f7aea', label: '德国DAX' },
+        { color: '#68d391', label: '现金' },
+        { color: '#f6e05e', label: '黄金' },
+        { color: '#fc8181', label: '越南市场' },
+      ],
+      actualData: [10, 70, 5, 3, 3, 2, 3, 2, 2],
+      targetData: [8,  70, 5, 4, 3, 2, 4, 2, 2],
+      adjRows: [
+        { no:'01.', name:'现金',    val:'$+520', ratio:'+5%',  pos:true  },
+        { no:'02.', name:'黄金',    val:'$+480', ratio:'+10%', pos:true  },
+        { no:'03.', name:'沪深300', val:'$-350', ratio:'-3%',  pos:false },
+        { no:'04.', name:'中证500', val:'$+940', ratio:'+2%',  pos:true  },
+        { no:'05.', name:'中证1000',val:'$-670', ratio:'-12%', pos:false },
+      ],
+      addLabel: "Ping An account's market value",
+      avatarBg: '#fde8e8', avatarStroke: '#e07b7b',
+    },
+    snowball: {
+      legends: [
+        { color: '#b0bec5', label: '标普500' },
+        { color: '#1a3a6b', label: '螺丝钉宝' },
+        { color: '#63b3ed', label: '纳指100' },
+        { color: '#68d391', label: '现金' },
+        { color: '#9f7aea', label: '德国DAX' },
+        { color: '#fc8181', label: '越南市场' },
+        { color: '#f6e05e', label: '黄金' },
+      ],
+      actualData: [10, 70, 5, 3, 4, 3, 5],
+      targetData: [8,  70, 5, 5, 4, 3, 5],
+      adjRows: [
+        { no:'01.', name:'现金',    val:'$+520', ratio:'+5%',  pos:true  },
+        { no:'02.', name:'黄金',    val:'$+480', ratio:'+10%', pos:true  },
+        { no:'03.', name:'螺丝钉宝',val:'$-350', ratio:'-3%',  pos:false },
+        { no:'04.', name:'纳指100', val:'$+940', ratio:'+2%',  pos:true  },
+        { no:'05.', name:'标普500', val:'$-670', ratio:'-12%', pos:false },
+      ],
+      addLabel: "Snowball account's market value",
+      avatarBg: '#dbeafe', avatarStroke: '#3b82f6',
+    },
+  };
+
+  let actualChart = null;
+  let targetChart = null;
+
+  function makeDonut(id, data, colors) {
+    const ctx = document.getElementById(id);
+    if (id === 'actualRatioChart' && actualChart) actualChart.destroy();
+    if (id === 'targetRatioChart' && targetChart) targetChart.destroy();
+
+    const chart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ` Legend ${ctx.dataIndex + 1}: ${ctx.parsed}%` } }
+        }
+      }
+    });
+
+    if (id === 'actualRatioChart') actualChart = chart;
+    if (id === 'targetRatioChart') targetChart = chart;
+  }
+
+  function renderLegend(id, legends) {
+    document.getElementById(id).innerHTML = legends.map(l => `
+      <div class="legend-item">
+        <span class="legend-dot" style="background:${l.color}"></span>${l.label}
+      </div>
+    `).join('');
+  }
+
+  function renderAdjTable(rows) {
+    document.getElementById('adjTableBody').innerHTML = rows.map(r => `
+      <tr>
+        <td>${r.no}</td>
+        <td>${r.name}</td>
+        <td>${r.val}</td>
+        <td class="${r.pos ? 'ratio-pos' : 'ratio-neg'}">${r.ratio}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderList(avatarBg, avatarStroke) {
+    const list = document.getElementById('recordList');
+    list.innerHTML = '';
+    Array.from({ length: 12 }).forEach(() => {
+      const item = document.createElement('div');
+      item.className = 'record-item';
+      item.innerHTML = `
+        <div class="record-avatar" style="background:${avatarBg}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${avatarStroke}" stroke-width="2">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        <div class="record-info">
+          <div class="record-name">Ping An Account</div>
+          <div class="record-sub">current value</div>
+        </div>
+        <div class="record-amount">$10,000,000</div>
+        <button class="btn-delete">Delete</button>
+      `;
+      item.querySelector('.btn-delete').addEventListener('click', () => {
+        item.style.transition = 'opacity 0.3s';
+        item.style.opacity = '0';
+        setTimeout(() => item.remove(), 300);
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function switchTab(tabKey) {
+    const d = tabData[tabKey];
+    const colors = d.legends.map(l => l.color);
+    renderLegend('actualLegend', d.legends);
+    renderLegend('targetLegend', d.legends);
+    makeDonut('actualRatioChart', d.actualData, colors);
+    makeDonut('targetRatioChart', d.targetData, colors);
+    renderAdjTable(d.adjRows);
+    document.getElementById('addRecordLabel').textContent = d.addLabel;
+    renderList(d.avatarBg, d.avatarStroke);
+  }
+
+  switchTab('pingan');
+
+  document.querySelectorAll('.page-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      switchTab(tab.dataset.tab);
+    });
+  });
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const links = {
+      'Real-time Dashboard': 'Dashboard.html',
+      'Asset record': 'asset-record.html',
+      'All-weather portfolio': 'all-weather-portfolio.html'
+    };
+    const text = item.textContent.trim();
+    if (links[text]) window.location.href = links[text];
+  });
+});
+</script>
+</body>
+</html>

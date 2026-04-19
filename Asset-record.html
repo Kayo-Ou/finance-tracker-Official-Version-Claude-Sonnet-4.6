@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asset Record - Personal Finance Stats</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f6fa;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── 侧边栏 ── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 0;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 24px 36px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d3a6b;
+    }
+
+    .sidebar-logo span.icon { font-size: 22px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      font-size: 14px;
+      color: #7b8db0;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .nav-item:hover { color: #2d3a6b; }
+
+    .nav-item.active {
+      color: #2d3a6b;
+      font-weight: 600;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 32px;
+      background: #2d3a6b;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ── 主内容 ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 36px;
+      overflow: hidden;       /* 整体不滚动，让 inventory 卡片撑满 */
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      flex-shrink: 0;
+    }
+
+    .topbar h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a2340;
+    }
+
+    .avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c9a96e, #a0784a);
+      border: 2px solid #e8ecf5;
+      flex-shrink: 0;
+    }
+
+    /* ── Add Record 卡片 ── */
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a2340;
+      margin-bottom: 20px;
+    }
+
+    .add-record-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px 28px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px 20px;
+      margin-bottom: 24px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 13px;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    .input-group input,
+    .input-group select {
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #c0cce0;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: #2d3a6b;
+      color: #1a2340;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-wrapper select {
+      width: 100%;
+      cursor: pointer;
+      color: #4a5568;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .select-wrapper::after {
+      content: '⌄';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7b8db0;
+      pointer-events: none;
+      font-size: 16px;
+    }
+
+    /* ── 按钮行：2 拉长 + Import/Export 间距拉开 ── */
+    .btn-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .btn {
+      padding: 12px 56px;       /* 比之前更宽 */
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-add {
+      background: #2d3a6b;
+      color: #fff;
+    }
+
+    /* Import 靠右，与 Export 之间留间距 */
+    .btn-import {
+      background: #2a9d8f;
+      color: #fff;
+      margin-left: auto;
+      margin-right: 16px;      /* Import 与 Export 之间的间距 */
+    }
+
+    .btn-export {
+      background: #6b3fa0;
+      color: #fff;
+    }
+
+    /* ── Asset Inventory 卡片：占满剩余高度 ── */
+    .inventory-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      flex: 1;                  /* 撑满剩余空间 */
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1.5px solid #e8ecf5;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .tab {
+      padding: 10px 28px;
+      font-size: 14px;
+      color: #7b8db0;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab:hover { color: #2d3a6b; }
+
+    .tab.active {
+      color: #3b5bdb;
+      font-weight: 600;
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1.5px;
+      left: 0;
+      right: 0;
+      height: 2.5px;
+      background: #3b5bdb;
+      border-radius: 2px 2px 0 0;
+    }
+
+    /* Table 容器滚动 */
+    .table-wrap {
+      overflow-y: auto;         /* 内容多时表格内部滚动 */
+      flex: 1;
+      min-height: 0;
+      margin-top: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    /* 3. 表头字体跟随未选中 Tab 的灰色 */
+    thead th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: #7b8db0;           /* 与未选中 Tab 颜色一致 */
+      border-bottom: 1.5px solid #e8ecf5;
+      position: sticky;
+      top: 0;
+      background: #fff;
+    }
+
+    thead th:last-child { text-align: right; }
+
+    tbody tr {
+      border-bottom: 1px solid #f0f3fa;
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: #fafbff; }
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 16px 16px;
+      font-size: 14px;
+      color: #4a5568;
+    }
+
+    tbody td:last-child { text-align: right; }
+
+    /* 4. Delete 默认灰色，hover 变红 */
+    .btn-delete {
+      padding: 6px 22px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: #fff;
+      border: 1.5px solid #cbd5e0;
+      color: #a0aec0;           /* 默认灰色文字 */
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+
+    .btn-delete:hover {
+      border-color: #e53e3e;
+      color: #e53e3e;
+      background: #fff5f5;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="icon">🏛️</span>
+    <span>Personal finance stats</span>
+  </div>
+
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+    Real-time Dashboard
+  </div>
+
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <path d="M8 17V13M12 17V9M16 17V11"/>
+    </svg>
+    Asset record
+  </div>
+
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9"/>
+      <path d="M16 3l5 5-5 5"/>
+    </svg>
+    All-weather portfolio
+  </div>
+</aside>
+
+<!-- 主内容 -->
+<main class="main">
+  <div class="topbar">
+    <h1>Asset record</h1>
+    <div class="avatar-placeholder"></div>
+  </div>
+
+  <!-- Add Record -->
+  <div class="add-record-card">
+    <div class="section-title">Add record</div>
+
+    <div class="input-grid">
+      <div class="input-group">
+        <label>平安银行总值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>平安证券总值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>支付宝总值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>农业银行总值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>Date</label>
+        <div class="select-wrapper">
+          <select>
+            <option>25 January 2025</option>
+            <option>24 January 2025</option>
+            <option>23 January 2025</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>平安银行基金市值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>平安证券基金市值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>支付宝基金市值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>雪球基金市值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+      <div class="input-group">
+        <label>顺丰控股市值</label>
+        <input type="number" placeholder="0.00" />
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-add">ADD</button>
+      <button class="btn btn-import">Import</button>
+      <button class="btn btn-export">Export</button>
+    </div>
+  </div>
+
+  <!-- Asset Inventory：flex:1 撑满 -->
+  <div class="inventory-card">
+    <div class="section-title">Asset Inventory</div>
+
+    <div class="tabs">
+      <div class="tab active">Total account value</div>
+      <div class="tab">Fund market value</div>
+      <div class="tab">Stock value</div>
+      <div class="tab">Accounting stats</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SL No</th>
+            <th>Date</th>
+            <th>平安银行总值</th>
+            <th>平安证券总值</th>
+            <th>支付宝总值</th>
+            <th>农业银行总值</th>
+            <th>Operation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>01.</td>
+            <td>$100,000</td>
+            <td>$40,500</td>
+            <td>8 Months</td>
+            <td>12%</td>
+            <td>$2,000 / 月</td>
+            <td><button class="btn-delete">Delete</button></td>
+          </tr>
+          <tr>
+            <td>02.</td>
+            <td>$500,000</td>
+            <td>$250,000</td>
+            <td>36 Months</td>
+            <td>10%</td>
+            <td>$8,000 / 月</td>
+            <td><button class="btn-delete">Delete</button></td>
+          </tr>
+          <tr>
+            <td>03.</td>
+            <td>$900,000</td>
+            <td>$40,500</td>
+            <td>12 Months</td>
+            <td>12%</td>
+            <td>$5,000 / 月</td>
+            <td><button class="btn-delete">Delete</button></td>
+          </tr>
+          <tr>
+            <td>04.</td>
+            <td>$50,000</td>
+            <td>$40,500</td>
+            <td>25 Months</td>
+            <td>5%</td>
+            <td>$2,000 / 月</td>
+            <td><button class="btn-delete">Delete</button></td>
+          </tr>
+          <tr>
+            <td>05.</td>
+            <td>$120,000</td>
+            <td>$55,000</td>
+            <td>18 Months</td>
+            <td>8%</td>
+            <td>$3,500 / 月</td>
+            <td><button class="btn-delete">Delete</button></td>
+          </tr>
+          <tr>
+            <td>06.</td>
+            <td>$300,000</td>
+            <td>$90,000</td>
+            <td>24 Months</td>
+            <td>11%</td>
+            <td>$6,000 / 月</td>
+            <td><button class="btn-delete">Delete</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+  // 导航交互
+  document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const links = {
+      'Real-time Dashboard': 'Dashboard.html',
+      'Asset record': 'asset-record.html',
+      'All-weather portfolio': 'all-weather-portfolio.html'
+    };
+    const text = item.textContent.trim();
+    if (links[text]) window.location.href = links[text];
+  });
+});
+
+  // Tab 切换
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // Delete 删除行（淡出动画）
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('tr');
+      row.style.transition = 'opacity 0.3s';
+      row.style.opacity = '0';
+      setTimeout(() => row.remove(), 300);
+    });
+  });
+</script>
+</body>
+</html>
