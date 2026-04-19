@@ -418,6 +418,7 @@
       return `${name} ${Math.round((value / sum) * 100)}%`;
     }
 
+    // Normalize date labels to YYYY-MM-DD for consistent chart display.
     function formatFullDate(dateLabel) {
       const raw = String(dateLabel || '').trim();
       if (!raw) return '';
@@ -432,6 +433,7 @@
       return `${year}-${month}-${day}`;
     }
 
+    // Detect year transition points so separators can be drawn dynamically.
     function detectYearChanges(labels) {
       const yearPoints = [];
       let currentYear = null;
