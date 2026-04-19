@@ -417,22 +417,22 @@
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animateRotate: true,
-        animateScale: false,
-        animation: {
-          duration: 1500,
-          easing: 'easeInOutQuart'
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom',
-            labels: { font: { size: 11 }, color: '#7b8db0', boxWidth: 12 }
-          }
-        }
-      }
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: {
+    animateRotate: true,
+    animateScale: true,
+    duration: 2000,
+    easing: 'easeOutBounce'
+  },
+  plugins: {
+    legend: {
+      display: true,
+      position: 'bottom',
+      labels: { font: { size: 11 }, color: '#7b8db0', boxWidth: 12 }
+    }
+  }
+}
     });
 
     // ── 3. Cash Flow ──
