@@ -485,7 +485,7 @@
     // ── 2.1 Compound Growth Rate ──
     const compoundValueEl = document.querySelector('.compound-value');
     const firstRecord = parsedRecords[0];
-    const endRecord = parsedRecords[parsedRecords.length - 1];
+    const endRecord = latestRecord;
 
     if (firstRecord && endRecord && firstRecord.total > 0 && endRecord.total > 0) {
       const startDate = new Date(firstRecord.date);
