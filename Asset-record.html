@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Asset Record - Personal Finance Stats</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -23,7 +28,7 @@
       display: flex;
       flex-direction: column;
       padding: 32px 0;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
     }
 
     .sidebar-logo {
@@ -36,7 +41,9 @@
       color: #2d3a6b;
     }
 
-    .sidebar-logo span.icon { font-size: 22px; }
+    .sidebar-logo span.icon {
+      font-size: 22px;
+    }
 
     .nav-item {
       display: flex;
@@ -50,7 +57,9 @@
       transition: color 0.2s;
     }
 
-    .nav-item:hover { color: #2d3a6b; }
+    .nav-item:hover {
+      color: #2d3a6b;
+    }
 
     .nav-item.active {
       color: #2d3a6b;
@@ -81,7 +90,8 @@
       display: flex;
       flex-direction: column;
       padding: 32px 36px;
-      overflow: hidden;       /* 整体不滚动，让 inventory 卡片撑满 */
+      overflow: hidden;
+      /* 整体不滚动，让 inventory 卡片撑满 */
     }
 
     .topbar {
@@ -98,13 +108,26 @@
       color: #1a2340;
     }
 
-    .avatar-placeholder {
+    .avatar-wrapper {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .avatar-wrapper img,
+    .avatar-wrapper svg {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #c9a96e, #a0784a);
       border: 2px solid #e8ecf5;
-      flex-shrink: 0;
+      object-fit: cover;
+      display: block;
+    }
+
+    #avatarInput {
+      display: none;
     }
 
     /* ── Add Record 卡片 ── */
@@ -119,7 +142,7 @@
       background: #fff;
       border-radius: 16px;
       padding: 28px 28px 24px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
       margin-bottom: 20px;
       flex-shrink: 0;
     }
@@ -192,7 +215,8 @@
     }
 
     .btn {
-      padding: 12px 56px;       /* 比之前更宽 */
+      padding: 12px 56px;
+      /* 比之前更宽 */
       border-radius: 12px;
       font-size: 15px;
       font-weight: 600;
@@ -202,8 +226,14 @@
       white-space: nowrap;
     }
 
-    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
-    .btn:active { transform: translateY(0); }
+    .btn:hover {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
 
     .btn-add {
       background: #2d3a6b;
@@ -215,7 +245,8 @@
       background: #2a9d8f;
       color: #fff;
       margin-left: auto;
-      margin-right: 16px;      /* Import 与 Export 之间的间距 */
+      margin-right: 16px;
+      /* Import 与 Export 之间的间距 */
     }
 
     .btn-export {
@@ -228,8 +259,9 @@
       background: #fff;
       border-radius: 16px;
       padding: 24px 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-      flex: 1;                  /* 撑满剩余空间 */
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      flex: 1;
+      /* 撑满剩余空间 */
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -253,7 +285,9 @@
       white-space: nowrap;
     }
 
-    .tab:hover { color: #2d3a6b; }
+    .tab:hover {
+      color: #2d3a6b;
+    }
 
     .tab.active {
       color: #3b5bdb;
@@ -273,7 +307,8 @@
 
     /* Table 容器滚动 */
     .table-wrap {
-      overflow-y: auto;         /* 内容多时表格内部滚动 */
+      overflow-y: auto;
+      /* 内容多时表格内部滚动 */
       flex: 1;
       min-height: 0;
       margin-top: 8px;
@@ -290,22 +325,30 @@
       text-align: left;
       font-size: 13px;
       font-weight: 600;
-      color: #7b8db0;           /* 与未选中 Tab 颜色一致 */
+      color: #7b8db0;
+      /* 与未选中 Tab 颜色一致 */
       border-bottom: 1.5px solid #e8ecf5;
       position: sticky;
       top: 0;
       background: #fff;
     }
 
-    thead th:last-child { text-align: right; }
+    thead th:last-child {
+      text-align: right;
+    }
 
     tbody tr {
       border-bottom: 1px solid #f0f3fa;
       transition: background 0.15s;
     }
 
-    tbody tr:hover { background: #fafbff; }
-    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover {
+      background: #fafbff;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
 
     tbody td {
       padding: 16px 16px;
@@ -313,7 +356,9 @@
       color: #4a5568;
     }
 
-    tbody td:last-child { text-align: right; }
+    tbody td:last-child {
+      text-align: right;
+    }
 
     /* 4. Delete 默认灰色，hover 变红 */
     .btn-delete {
@@ -324,7 +369,8 @@
       cursor: pointer;
       background: #fff;
       border: 1.5px solid #cbd5e0;
-      color: #a0aec0;           /* 默认灰色文字 */
+      color: #a0aec0;
+      /* 默认灰色文字 */
       transition: border-color 0.2s, color 0.2s, background 0.2s;
     }
 
@@ -335,224 +381,255 @@
     }
   </style>
 </head>
+
 <body>
 
-<!-- 侧边栏 -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <span class="icon">🏛️</span>
-    <span>Personal finance stats</span>
-  </div>
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="icon">🏛️</span>
+      <span>Personal finance stats</span>
+    </div>
 
-  <div class="nav-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
-      <path d="M9 21V12h6v9"/>
-    </svg>
-    Real-time Dashboard
-  </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+        <path d="M9 21V12h6v9" />
+      </svg>
+      Real-time Dashboard
+    </div>
 
-  <div class="nav-item active">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="18" height="18" rx="2"/>
-      <path d="M8 17V13M12 17V9M16 17V11"/>
-    </svg>
-    Asset record
-  </div>
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M8 17V13M12 17V9M16 17V11" />
+      </svg>
+      Asset record
+    </div>
 
-  <div class="nav-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9"/>
-      <path d="M16 3l5 5-5 5"/>
-    </svg>
-    All-weather portfolio
-  </div>
-</aside>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9" />
+        <path d="M16 3l5 5-5 5" />
+      </svg>
+      All-weather portfolio
+    </div>
+  </aside>
 
-<!-- 主内容 -->
-<main class="main">
-  <div class="topbar">
-    <h1>Asset record</h1>
-    <div class="avatar-placeholder"></div>
-  </div>
-
-  <!-- Add Record -->
-  <div class="add-record-card">
-    <div class="section-title">Add record</div>
-
-    <div class="input-grid">
-      <div class="input-group">
-        <label>平安银行总值</label>
-        <input type="number" placeholder="0.00" />
+  <!-- 主内容 -->
+  <main class="main">
+    <div class="topbar">
+      <h1>Asset record</h1>
+      <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5" id="avatarDefault">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
+        <img id="avatarImg" style="display:none" src="" alt="avatar" />
+        <input type="file" id="avatarInput" accept="image/*" />
       </div>
-      <div class="input-group">
-        <label>平安证券总值</label>
-        <input type="number" placeholder="0.00" />
-      </div>
-      <div class="input-group">
-        <label>支付宝总值</label>
-        <input type="number" placeholder="0.00" />
-      </div>
-      <div class="input-group">
-        <label>农业银行总值</label>
-        <input type="number" placeholder="0.00" />
-      </div>
-      <div class="input-group">
-        <label>Date</label>
-        <div class="select-wrapper">
-          <select>
-            <option>25 January 2025</option>
-            <option>24 January 2025</option>
-            <option>23 January 2025</option>
-          </select>
+    </div>
+
+    <!-- Add Record -->
+    <div class="add-record-card">
+      <div class="section-title">Add record</div>
+
+      <div class="input-grid">
+        <div class="input-group">
+          <label>平安银行总值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>平安证券总值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>支付宝总值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>农业银行总值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>Date</label>
+          <div class="select-wrapper">
+            <select>
+              <option>25 January 2025</option>
+              <option>24 January 2025</option>
+              <option>23 January 2025</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>平安银行基金市值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>平安证券基金市值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>支付宝基金市值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>雪球基金市值</label>
+          <input type="number" placeholder="0.00" />
+        </div>
+        <div class="input-group">
+          <label>顺丰控股市值</label>
+          <input type="number" placeholder="0.00" />
         </div>
       </div>
 
-      <div class="input-group">
-        <label>平安银行基金市值</label>
-        <input type="number" placeholder="0.00" />
-      </div>
-      <div class="input-group">
-        <label>平安证券基金市值</label>
-        <input type="number" placeholder="0.00" />
-      </div>
-      <div class="input-group">
-        <label>支付宝基金市值</label>
-        <input type="number" placeholder="0.00" />
-      </div>
-      <div class="input-group">
-        <label>雪球基金市值</label>
-        <input type="number" placeholder="0.00" />
-      </div>
-      <div class="input-group">
-        <label>顺丰控股市值</label>
-        <input type="number" placeholder="0.00" />
+      <div class="btn-row">
+        <button class="btn btn-add">ADD</button>
+        <button class="btn btn-import">Import</button>
+        <button class="btn btn-export">Export</button>
       </div>
     </div>
 
-    <div class="btn-row">
-      <button class="btn btn-add">ADD</button>
-      <button class="btn btn-import">Import</button>
-      <button class="btn btn-export">Export</button>
+    <!-- Asset Inventory：flex:1 撑满 -->
+    <div class="inventory-card">
+      <div class="section-title">Asset Inventory</div>
+
+      <div class="tabs">
+        <div class="tab active">Total account value</div>
+        <div class="tab">Fund market value</div>
+        <div class="tab">Stock value</div>
+        <div class="tab">Accounting stats</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>SL No</th>
+              <th>Date</th>
+              <th>平安银行总值</th>
+              <th>平安证券总值</th>
+              <th>支付宝总值</th>
+              <th>农业银行总值</th>
+              <th>Operation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>01.</td>
+              <td>$100,000</td>
+              <td>$40,500</td>
+              <td>8 Months</td>
+              <td>12%</td>
+              <td>$2,000 / 月</td>
+              <td><button class="btn-delete">Delete</button></td>
+            </tr>
+            <tr>
+              <td>02.</td>
+              <td>$500,000</td>
+              <td>$250,000</td>
+              <td>36 Months</td>
+              <td>10%</td>
+              <td>$8,000 / 月</td>
+              <td><button class="btn-delete">Delete</button></td>
+            </tr>
+            <tr>
+              <td>03.</td>
+              <td>$900,000</td>
+              <td>$40,500</td>
+              <td>12 Months</td>
+              <td>12%</td>
+              <td>$5,000 / 月</td>
+              <td><button class="btn-delete">Delete</button></td>
+            </tr>
+            <tr>
+              <td>04.</td>
+              <td>$50,000</td>
+              <td>$40,500</td>
+              <td>25 Months</td>
+              <td>5%</td>
+              <td>$2,000 / 月</td>
+              <td><button class="btn-delete">Delete</button></td>
+            </tr>
+            <tr>
+              <td>05.</td>
+              <td>$120,000</td>
+              <td>$55,000</td>
+              <td>18 Months</td>
+              <td>8%</td>
+              <td>$3,500 / 月</td>
+              <td><button class="btn-delete">Delete</button></td>
+            </tr>
+            <tr>
+              <td>06.</td>
+              <td>$300,000</td>
+              <td>$90,000</td>
+              <td>24 Months</td>
+              <td>11%</td>
+              <td>$6,000 / 月</td>
+              <td><button class="btn-delete">Delete</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  </main>
 
-  <!-- Asset Inventory：flex:1 撑满 -->
-  <div class="inventory-card">
-    <div class="section-title">Asset Inventory</div>
+  <script>
+    // 导航交互
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const links = {
+          'Real-time Dashboard': 'Dashboard.html',
+          'Asset record': 'asset-record.html',
+          'All-weather portfolio': 'all-weather-portfolio.html'
+        };
+        const text = item.textContent.trim();
+        if (links[text]) window.location.href = links[text];
+      });
+    });
 
-    <div class="tabs">
-      <div class="tab active">Total account value</div>
-      <div class="tab">Fund market value</div>
-      <div class="tab">Stock value</div>
-      <div class="tab">Accounting stats</div>
-    </div>
+    // Tab 切换
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>SL No</th>
-            <th>Date</th>
-            <th>平安银行总值</th>
-            <th>平安证券总值</th>
-            <th>支付宝总值</th>
-            <th>农业银行总值</th>
-            <th>Operation</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>01.</td>
-            <td>$100,000</td>
-            <td>$40,500</td>
-            <td>8 Months</td>
-            <td>12%</td>
-            <td>$2,000 / 月</td>
-            <td><button class="btn-delete">Delete</button></td>
-          </tr>
-          <tr>
-            <td>02.</td>
-            <td>$500,000</td>
-            <td>$250,000</td>
-            <td>36 Months</td>
-            <td>10%</td>
-            <td>$8,000 / 月</td>
-            <td><button class="btn-delete">Delete</button></td>
-          </tr>
-          <tr>
-            <td>03.</td>
-            <td>$900,000</td>
-            <td>$40,500</td>
-            <td>12 Months</td>
-            <td>12%</td>
-            <td>$5,000 / 月</td>
-            <td><button class="btn-delete">Delete</button></td>
-          </tr>
-          <tr>
-            <td>04.</td>
-            <td>$50,000</td>
-            <td>$40,500</td>
-            <td>25 Months</td>
-            <td>5%</td>
-            <td>$2,000 / 月</td>
-            <td><button class="btn-delete">Delete</button></td>
-          </tr>
-          <tr>
-            <td>05.</td>
-            <td>$120,000</td>
-            <td>$55,000</td>
-            <td>18 Months</td>
-            <td>8%</td>
-            <td>$3,500 / 月</td>
-            <td><button class="btn-delete">Delete</button></td>
-          </tr>
-          <tr>
-            <td>06.</td>
-            <td>$300,000</td>
-            <td>$90,000</td>
-            <td>24 Months</td>
-            <td>11%</td>
-            <td>$6,000 / 月</td>
-            <td><button class="btn-delete">Delete</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</main>
+    // Delete 删除行（淡出动画）
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('tr');
+        row.style.transition = 'opacity 0.3s';
+        row.style.opacity = '0';
+        setTimeout(() => row.remove(), 300);
+      });
+    });
+  // 头像：读取 + 上传（与第一页共享 localStorage）
+const savedAvatar = localStorage.getItem('userAvatar');
+if (savedAvatar) {
+  document.getElementById('avatarDefault').style.display = 'none';
+  const img = document.getElementById('avatarImg');
+  img.src = savedAvatar;
+  img.style.display = 'block';
+}
 
-<script>
-  // 导航交互
-  document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const links = {
-      'Real-time Dashboard': 'Dashboard.html',
-      'Asset record': 'asset-record.html',
-      'All-weather portfolio': 'all-weather-portfolio.html'
-    };
-    const text = item.textContent.trim();
-    if (links[text]) window.location.href = links[text];
-  });
+document.getElementById('avatarInput').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('avatarDefault').style.display = 'none';
+    const img = document.getElementById('avatarImg');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    localStorage.setItem('userAvatar', e.target.result);
+  };
+  reader.readAsDataURL(file);
 });
-
-  // Tab 切换
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-    });
-  });
-
-  // Delete 删除行（淡出动画）
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const row = btn.closest('tr');
-      row.style.transition = 'opacity 0.3s';
-      row.style.opacity = '0';
-      setTimeout(() => row.remove(), 300);
-    });
-  });
-</script>
+  </script>
 </body>
+
 </html>
