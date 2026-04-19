@@ -497,7 +497,9 @@
       </div>
 
       <div class="table-wrap">
-        <table>
+
+        <!-- Tab 1: Total account value -->
+        <table id="table-total">
           <thead>
             <tr>
               <th>SL No</th>
@@ -512,6 +514,38 @@
           <tbody id="recordTableBody">
           </tbody>
         </table>
+
+        <!-- Tab 2: Fund market value -->
+        <table id="table-fund" style="display:none">
+          <thead>
+            <tr>
+              <th>SL No</th>
+              <th>Date</th>
+              <th>平安银行基金市值</th>
+              <th>平安证券基金市值</th>
+              <th>支付宝基金市值</th>
+              <th>雪球基金市值</th>
+              <th>Operation</th>
+            </tr>
+          </thead>
+          <tbody id="fundTableBody">
+          </tbody>
+        </table>
+
+        <!-- Tab 3: Stock value -->
+        <table id="table-stock" style="display:none">
+          <thead>
+            <tr>
+              <th>SL No</th>
+              <th>Date</th>
+              <th>顺丰控股市值</th>
+              <th>Operation</th>
+            </tr>
+          </thead>
+          <tbody id="stockTableBody">
+          </tbody>
+        </table>
+
       </div>
     </div>
   </main>
@@ -557,17 +591,50 @@
     document.getElementById('inputDate').value = today;
 
     // ── Tab 切换 ──
+    const tabTables = {
+      'Total account value': 'table-total',
+      'Fund market value': 'table-fund',
+      'Stock value': 'table-stock',
+      'Accounting stats': null
+    };
+
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
+
+        // 隐藏所有表格
+        ['table-total', 'table-fund', 'table-stock'].forEach(id => {
+          document.getElementById(id).style.display = 'none';
+        });
+
+        // 显示对应表格
+        const targetId = tabTables[tab.textContent.trim()];
+        if (targetId) document.getElementById(targetId).style.display = 'table';
       });
     });
 
     // ── 数据 ──
     let records = JSON.parse(localStorage.getItem('assetRecords') || '[]');
 
-    function renderTable() {
+    function bindDelete(tbodyId) {
+      document.querySelectorAll(`#${tbodyId} .btn-delete`).forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-index'));
+          const row = btn.closest('tr');
+          row.style.transition = 'opacity 0.3s';
+          row.style.opacity = '0';
+          setTimeout(() => {
+            records.splice(idx, 1);
+            localStorage.setItem('assetRecords', JSON.stringify(records));
+            renderAll();
+          }, 300);
+        });
+      });
+    }
+
+    function renderAll() {
+      // Total account value
       const tbody = document.getElementById('recordTableBody');
       tbody.innerHTML = '';
       records.forEach((r, i) => {
@@ -583,24 +650,43 @@
       `;
         tbody.appendChild(tr);
       });
+      bindDelete('recordTableBody');
 
-      // Delete 绑定
-      document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx = parseInt(btn.getAttribute('data-index'));
-          const row = btn.closest('tr');
-          row.style.transition = 'opacity 0.3s';
-          row.style.opacity = '0';
-          setTimeout(() => {
-            records.splice(idx, 1);
-            localStorage.setItem('assetRecords', JSON.stringify(records));
-            renderTable();
-          }, 300);
-        });
+      // Fund market value
+      const fundBody = document.getElementById('fundTableBody');
+      fundBody.innerHTML = '';
+      records.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td>${String(i + 1).padStart(2, '0')}.</td>
+        <td>${r.date}</td>
+        <td>${r.pinganBankFund}</td>
+        <td>${r.pinganSecFund}</td>
+        <td>${r.alipayFund}</td>
+        <td>${r.xueqiuFund}</td>
+        <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+      `;
+        fundBody.appendChild(tr);
       });
+      bindDelete('fundTableBody');
+
+      // Stock value
+      const stockBody = document.getElementById('stockTableBody');
+      stockBody.innerHTML = '';
+      records.forEach((r, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td>${String(i + 1).padStart(2, '0')}.</td>
+        <td>${r.date}</td>
+        <td>${r.sfStock}</td>
+        <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+      `;
+        stockBody.appendChild(tr);
+      });
+      bindDelete('stockTableBody');
     }
 
-    renderTable();
+    renderAll();
 
     // ── ADD 按钮 ──
     document.querySelector('.btn-add').addEventListener('click', () => {
@@ -610,17 +696,24 @@
       const pinganSec = inputs[1].value || '0';
       const alipay = inputs[2].value || '0';
       const agriBank = inputs[3].value || '0';
+      const pinganBankFund = inputs[4].value || '0';
+      const pinganSecFund = inputs[5].value || '0';
+      const alipayFund = inputs[6].value || '0';
+      const xueqiuFund = inputs[7].value || '0';
+      const sfStock = inputs[8].value || '0';
 
       if (!date) { alert('请选择日期！'); return; }
 
-      records.push({ date, pinganBank, pinganSec, alipay, agriBank });
+      records.push({
+        date, pinganBank, pinganSec, alipay, agriBank,
+        pinganBankFund, pinganSecFund, alipayFund, xueqiuFund, sfStock
+      });
       localStorage.setItem('assetRecords', JSON.stringify(records));
 
-      // 清空输入框，日期恢复今天
       inputs.forEach(inp => inp.value = '');
       document.getElementById('inputDate').value = today;
 
-      renderTable();
+      renderAll();
     });
   </script>
 </body>
