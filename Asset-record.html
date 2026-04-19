@@ -445,6 +445,7 @@
         <input type="file" id="avatarInput" accept="image/*" />
       </div>
     </div>
+    <input type="file" id="importInput" accept=".json" style="display:none" />
 
     <!-- Add Record -->
     <div class="add-record-card">
@@ -783,6 +784,43 @@
       document.getElementById('inputDate').value = today;
 
       renderAll();
+    });
+        
+    // ── Export 按钮 ──
+    document.querySelector('.btn-export').addEventListener('click', () => {
+      const data = JSON.parse(localStorage.getItem('assetRecords') || '[]');
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `asset-records-${today}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ── Import 按钮 ──
+    document.querySelector('.btn-import').addEventListener('click', () => {
+      document.getElementById('importInput').click();
+    });
+
+    document.getElementById('importInput').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data)) throw new Error();
+          records = data;
+          localStorage.setItem('assetRecords', JSON.stringify(records));
+          renderAll();
+          alert(`✅ 导入成功！共 ${data.length} 条记录`);
+        } catch {
+          alert('❌ 文件格式错误，请导入正确的 JSON 文件');
+        }
+      };
+      reader.readAsText(file);
+      this.value = '';
     });
   </script>
 </body>
