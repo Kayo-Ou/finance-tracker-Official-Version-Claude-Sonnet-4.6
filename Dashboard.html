@@ -418,9 +418,30 @@
       return `${name} ${Math.round((value / sum) * 100)}%`;
     }
 
+    const crosshairPlugin = {
+      id: 'crosshair',
+      afterDraw(chart) {
+        if (chart.tooltip && chart.tooltip._active && chart.tooltip._active.length) {
+          const ctx = chart.ctx;
+          const x = chart.tooltip._active[0].element.x;
+          const topY = chart.scales.y.top;
+          const bottomY = chart.scales.y.bottom;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, topY);
+          ctx.lineTo(x, bottomY);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    };
+
     // ── 1. Total Assets ──
     new Chart(document.getElementById('totalAssetsChart'), {
       type: 'line',
+      plugins: [crosshairPlugin],
       data: {
         labels: dates,
         datasets: [{
@@ -438,6 +459,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
         plugins: { legend: { display: false } },
         scales: axisConfig()
       }
@@ -498,7 +520,7 @@
         if (Number.isFinite(cagr)) {
           const sign = cagr >= 0 ? '+' : '';
           compoundValueEl.textContent = `${sign}${(cagr * 100).toFixed(2)}%`;
-          compoundValueEl.style.color = cagr >= 0 ? '#52C41A' : '#e53e3e';
+          compoundValueEl.style.color = cagr >= 0 ? '#e53e3e' : '#52C41A';
         } else {
           compoundValueEl.textContent = '--';
           compoundValueEl.style.color = '#7b8db0';
@@ -515,6 +537,7 @@
     // ── 3. Cash Flow ──
     new Chart(document.getElementById('cashFlowChart'), {
       type: 'line',
+      plugins: [crosshairPlugin],
       data: {
         labels: dates,
         datasets: [{
@@ -522,13 +545,17 @@
           borderColor: '#52C41A',
           backgroundColor: 'transparent',
           borderWidth: 2.5,
-          pointRadius: 0,
+          pointRadius: 5,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#52C41A',
+          pointBorderWidth: 2,
           tension: 0.5
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
         plugins: { legend: { display: false } },
         scales: axisConfig()
       }
