@@ -460,9 +460,31 @@
       return yearPoints;
     }
 
+    const hoverVerticalLinePlugin = {
+      id: 'hoverVerticalLine',
+      afterDatasetsDraw(chart, _args, pluginOptions) {
+        if (!pluginOptions?.enabled) return;
+        const activeElements = chart.tooltip?.getActiveElements?.() || [];
+        if (!activeElements.length || !chart.chartArea) return;
+
+        const x = activeElements[0].element.x;
+        const { ctx, chartArea } = chart;
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = pluginOptions.color || 'rgba(123, 141, 176, 0.8)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
     // ── 1. Total Assets ──
     new Chart(document.getElementById('totalAssetsChart'), {
       type: 'line',
+      plugins: [hoverVerticalLinePlugin],
       data: {
         labels: dates,
         datasets: [{
@@ -480,7 +502,11 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          hoverVerticalLine: { enabled: true }
+        },
         scales: axisConfig()
       }
     });
@@ -540,7 +566,7 @@
         if (Number.isFinite(cagr)) {
           const sign = cagr >= 0 ? '+' : '';
           compoundValueEl.textContent = `${sign}${(cagr * 100).toFixed(2)}%`;
-          compoundValueEl.style.color = cagr >= 0 ? '#52C41A' : '#e53e3e';
+          compoundValueEl.style.color = cagr >= 0 ? '#FF6B9D' : '#52C41A';
         } else {
           compoundValueEl.textContent = '--';
           compoundValueEl.style.color = '#7b8db0';
@@ -557,6 +583,7 @@
     // ── 3. Cash Flow ──
     new Chart(document.getElementById('cashFlowChart'), {
       type: 'line',
+      plugins: [hoverVerticalLinePlugin],
       data: {
         labels: dates,
         datasets: [{
@@ -564,14 +591,22 @@
           borderColor: '#52C41A',
           backgroundColor: 'transparent',
           borderWidth: 2.5,
-          pointRadius: 0,
+          pointBackgroundColor: '#fff',
+          pointBorderColor: '#52C41A',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 5,
           tension: 0.5
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          hoverVerticalLine: { enabled: true }
+        },
         scales: axisConfig()
       }
     });
@@ -581,9 +616,13 @@
     const increase = [];
     const decrease = [];
 
-    for (let i = 1; i < parsedRecords.length; i++) {
-      const diff = parsedRecords[i].total - parsedRecords[i - 1].total;
-      momLabels.push(formatFullDate(parsedRecords[i].date));
+    const momRecords = parsedRecords
+      .slice()
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    for (let i = 1; i < momRecords.length; i++) {
+      const diff = momRecords[i].total - momRecords[i - 1].total;
+      momLabels.push(formatFullDate(momRecords[i].date));
       if (diff >= 0) {
         increase.push(diff);
         decrease.push(0);
@@ -662,7 +701,11 @@
         scales: {
           x: {
             grid: { color: gridColor, drawBorder: false },
-            ticks: { color: tickColor, font: { size: 10 } }
+            ticks: {
+              color: tickColor,
+              font: { size: 10 },
+              autoSkip: false
+            }
           },
           y: {
             grid: { color: gridColor, drawBorder: false },
