@@ -126,7 +126,8 @@
       display: block;
     }
 
-    #avatarInput {
+    #avatarInput,
+    #importInput {
       display: none;
     }
 
@@ -442,10 +443,8 @@
           <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
         </svg>
         <img id="avatarImg" style="display:none" src="" alt="avatar" />
-        <input type="file" id="avatarInput" accept="image/*" />
       </div>
     </div>
-    <input type="file" id="importInput" accept=".json" style="display:none" />
 
     <!-- Add Record -->
     <div class="add-record-card">
@@ -500,6 +499,11 @@
         <button class="btn btn-import">Import</button>
         <button class="btn btn-export">Export</button>
       </div>
+    </div>
+    
+    <div class="file-inputs" aria-hidden="true">
+      <input type="file" id="avatarInput" accept="image/*" />
+      <input type="file" id="importInput" accept=".json" />
     </div>
 
     <!-- Asset Inventory：flex:1 撑满 -->
@@ -647,7 +651,7 @@
       });
     });
 
-    // ── 数据 ──
+    // ── 数据渲染 ──
     let records = JSON.parse(localStorage.getItem('assetRecords') || '[]');
 
     function bindDelete(tbodyId) {
@@ -786,8 +790,9 @@
       renderAll();
     });
         
-    // ── Export 按钮 ──
-    document.querySelector('.btn-export').addEventListener('click', () => {
+    // ── Export ──
+    const exportBtn = document.querySelector('.btn-export');
+    exportBtn.addEventListener('click', () => {
       const data = JSON.parse(localStorage.getItem('assetRecords') || '[]');
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -798,12 +803,14 @@
       URL.revokeObjectURL(url);
     });
 
-    // ── Import 按钮 ──
-    document.querySelector('.btn-import').addEventListener('click', () => {
-      document.getElementById('importInput').click();
+    // ── Import ──
+    const importBtn = document.querySelector('.btn-import');
+    const importInput = document.getElementById('importInput');
+    importBtn.addEventListener('click', () => {
+      importInput.click();
     });
 
-    document.getElementById('importInput').addEventListener('change', function () {
+    importInput.addEventListener('change', function () {
       const file = this.files[0];
       if (!file) return;
       const reader = new FileReader();
