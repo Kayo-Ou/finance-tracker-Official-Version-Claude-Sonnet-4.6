@@ -487,7 +487,7 @@
     const firstRecord = parsedRecords[0];
     const endRecord = parsedRecords[parsedRecords.length - 1];
 
-    if (firstRecord && endRecord && firstRecord.total > 0) {
+    if (firstRecord && endRecord && firstRecord.total > 0 && endRecord.total > 0) {
       const startDate = new Date(firstRecord.date);
       const endDate = new Date(endRecord.date);
       const years = (endDate - startDate) / (1000 * 60 * 60 * 24 * 365.25);
