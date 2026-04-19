@@ -418,6 +418,48 @@
       return `${name} ${Math.round((value / sum) * 100)}%`;
     }
 
+    /**
+     * Normalize any supported date label into YYYY-MM-DD for chart display.
+     * Returns the original input string unchanged when parsing fails.
+     */
+    function formatFullDate(dateLabel) {
+      const raw = String(dateLabel || '').trim();
+      if (!raw) return '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+      const date = new Date(raw);
+      if (isNaN(date.getTime())) return raw;
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    /**
+     * Detect year transition points from ordered date labels.
+     * Labels should be chronological and parseable by formatFullDate.
+     * Returns [{ index, year }] entries for the first item of each year.
+     */
+    function detectYearChanges(labels) {
+      const yearPoints = [];
+      let currentYear = null;
+
+      labels.forEach((label, index) => {
+        const normalized = formatFullDate(label);
+        const matchedYear = normalized.match(/^(\d{4})/);
+        const year = matchedYear ? Number(matchedYear[1]) : NaN;
+        if (!Number.isFinite(year)) return;
+
+        if (year !== currentYear) {
+          yearPoints.push({ index, year });
+          currentYear = year;
+        }
+      });
+
+      return yearPoints;
+    }
+
     // ── 1. Total Assets ──
     new Chart(document.getElementById('totalAssetsChart'), {
       type: 'line',
@@ -541,7 +583,7 @@
 
     for (let i = 1; i < parsedRecords.length; i++) {
       const diff = parsedRecords[i].total - parsedRecords[i - 1].total;
-      momLabels.push(parsedRecords[i].date);
+      momLabels.push(formatFullDate(parsedRecords[i].date));
       if (diff >= 0) {
         increase.push(diff);
         decrease.push(0);
@@ -550,9 +592,42 @@
         decrease.push(diff);
       }
     }
+    const momYearPoints = detectYearChanges(momLabels);
 
     new Chart(document.getElementById('momChart'), {
       type: 'bar',
+      plugins: [{
+        id: 'momYearSeparators',
+        afterDatasetsDraw(chart) {
+          const { ctx, chartArea, scales } = chart;
+          const xScale = scales.x;
+          const yearPoints = chart.options.plugins?.momYearSeparators?.yearPoints || [];
+          if (!chartArea || !xScale || !yearPoints.length) return;
+
+          ctx.save();
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.fillStyle = '#4a5568';
+          ctx.lineWidth = 1;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.font = '600 11px Segoe UI, sans-serif';
+
+          yearPoints.forEach(point => {
+            const currentX = xScale.getPixelForValue(point.index);
+            const previousX = point.index > 0 ? xScale.getPixelForValue(point.index - 1) : currentX;
+            const separatorX = point.index === 0 ? chartArea.left : (currentX + previousX) / 2;
+
+            ctx.beginPath();
+            ctx.moveTo(separatorX, chartArea.top);
+            ctx.lineTo(separatorX, chartArea.bottom);
+            ctx.stroke();
+
+            ctx.fillText(String(point.year), separatorX, chartArea.top - 6);
+          });
+
+          ctx.restore();
+        }
+      }],
       data: {
         labels: momLabels,
         datasets: [
@@ -575,7 +650,15 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        layout: {
+          padding: { top: 20 }
+        },
+        plugins: {
+          legend: { display: false },
+          momYearSeparators: {
+            yearPoints: momYearPoints
+          }
+        },
         scales: {
           x: {
             grid: { color: gridColor, drawBorder: false },
