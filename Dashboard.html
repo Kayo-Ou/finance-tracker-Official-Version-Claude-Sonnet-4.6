@@ -360,6 +360,7 @@
   <script>
     const gridColor = 'rgba(0,0,0,0.06)';
     const tickColor = '#a0aec0';
+    const MS_PER_YEAR = 1000 * 60 * 60 * 24 * 365.25;
     let records = [];
     try {
       const rawRecords = JSON.parse(localStorage.getItem('assetRecords') || '[]');
@@ -490,7 +491,7 @@
     if (firstRecord && endRecord && firstRecord.total > 0 && endRecord.total > 0) {
       const startDate = new Date(firstRecord.date);
       const endDate = new Date(endRecord.date);
-      const yearsDiff = (endDate - startDate) / (1000 * 60 * 60 * 24 * 365.25);
+      const yearsDiff = (endDate - startDate) / MS_PER_YEAR;
 
       if (yearsDiff > 0 && Number.isFinite(yearsDiff)) {
         const cagr = Math.pow(endRecord.total / firstRecord.total, 1 / yearsDiff) - 1;
