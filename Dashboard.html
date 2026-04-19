@@ -490,7 +490,7 @@
     if (firstRecord && endRecord && firstRecord.total > 0) {
       const startDate = new Date(firstRecord.date);
       const endDate = new Date(endRecord.date);
-      const years = (endDate - startDate) / (1000 * 60 * 60 * 24 * 365);
+      const years = (endDate - startDate) / (1000 * 60 * 60 * 24 * 365.25);
 
       if (years > 0 && Number.isFinite(years)) {
         const cagr = Math.pow(endRecord.total / firstRecord.total, 1 / years) - 1;
