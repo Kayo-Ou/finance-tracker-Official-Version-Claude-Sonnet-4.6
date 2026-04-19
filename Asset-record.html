@@ -545,6 +545,22 @@
           <tbody id="stockTableBody">
           </tbody>
         </table>
+        <!-- Tab 4: Accounting stats -->
+        <table id="table-accounting" style="display:none">
+          <thead>
+            <tr>
+              <th>SL No</th>
+              <th>Date</th>
+              <th>Cash Flow</th>
+              <th>Fund</th>
+              <th>Stock</th>
+              <th>总资产</th>
+              <th>Operation</th>
+            </tr>
+          </thead>
+          <tbody id="accountingTableBody">
+          </tbody>
+        </table>
 
       </div>
     </div>
@@ -595,7 +611,7 @@
       'Total account value': 'table-total',
       'Fund market value': 'table-fund',
       'Stock value': 'table-stock',
-      'Accounting stats': null
+      'Accounting stats': 'table-accounting'
     };
 
     document.querySelectorAll('.tab').forEach(tab => {
@@ -604,7 +620,7 @@
         tab.classList.add('active');
 
         // 隐藏所有表格
-        ['table-total', 'table-fund', 'table-stock'].forEach(id => {
+        ['table-total', 'table-fund', 'table-stock', 'table-accounting'].forEach(id => {
           document.getElementById(id).style.display = 'none';
         });
 
@@ -684,6 +700,39 @@
         stockBody.appendChild(tr);
       });
       bindDelete('stockTableBody');
+
+      // Accounting stats
+      const accountingBody = document.getElementById('accountingTableBody');
+      accountingBody.innerHTML = '';
+      records.forEach((r, i) => {
+        const pb = parseFloat(r.pinganBank) || 0;
+        const ps = parseFloat(r.pinganSec) || 0;
+        const ali = parseFloat(r.alipay) || 0;
+        const agri = parseFloat(r.agriBank) || 0;
+        const pbf = parseFloat(r.pinganBankFund) || 0;
+        const psf = parseFloat(r.pinganSecFund) || 0;
+        const alif = parseFloat(r.alipayFund) || 0;
+        const sf = parseFloat(r.sfStock) || 0;
+
+        const cashFlow = (pb - pbf) + (ps - psf - sf) + (ali - alif) + agri;
+        const xqf = parseFloat(r.xueqiuFund) || 0;
+        const fund = pbf + psf + alif + xqf;
+        const stock = sf;
+        const total = cashFlow + fund + stock;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+    <td>${String(i + 1).padStart(2, '0')}.</td>
+    <td>${r.date}</td>
+    <td>${cashFlow.toFixed(2)}</td>
+    <td>${fund.toFixed(2)}</td>
+    <td>${stock.toFixed(2)}</td>
+    <td>${total.toFixed(2)}</td>
+    <td><button class="btn-delete" data-index="${i}">Delete</button></td>
+  `;
+        accountingBody.appendChild(tr);
+      });
+      bindDelete('accountingTableBody');
     }
 
     renderAll();
