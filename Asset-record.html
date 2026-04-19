@@ -317,6 +317,22 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    thead th:nth-child(1),
+    tbody td:nth-child(1) {
+      width: 80px;
+    }
+
+    thead th:nth-child(2),
+    tbody td:nth-child(2) {
+      width: 130px;
+    }
+
+    thead th:last-child,
+    tbody td:last-child {
+      width: 130px;
     }
 
     /* 3. 表头字体跟随未选中 Tab 的灰色 */
@@ -554,7 +570,7 @@
               <th>Cash Flow</th>
               <th>Fund</th>
               <th>Stock</th>
-              <th>总资产</th>
+              <th>Total Assets</th>
               <th>Operation</th>
             </tr>
           </thead>
