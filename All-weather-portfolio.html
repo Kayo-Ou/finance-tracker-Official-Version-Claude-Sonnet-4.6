@@ -221,11 +221,17 @@
 
     .adj-table tbody tr:last-child td { border-bottom: none; }
 
-    /* ② 颜色对调：+ 红色，- 绿色 */
-    .ratio-pos { color: #e53e3e; font-weight: 600; }
-    .ratio-neg { color: #38a169; font-weight: 600; }
+    .ratio-pos { color: #ff6b9d; font-weight: 600; }
+    .ratio-neg { color: #52c41a; font-weight: 600; }
 
-    .add-form { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .add-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
 
     .input-group { display: flex; flex-direction: column; gap: 5px; }
     .input-group label { font-size: 13px; color: #4a5568; font-weight: 500; }
@@ -234,7 +240,7 @@
       padding: 9px 12px;
       border: 1.5px solid #e2e8f0;
       border-radius: 10px;
-      font-size: 13px; color: #c0cce0;
+      font-size: 13px; color: #4a5568;
       background: #fff; outline: none;
       transition: border-color 0.2s;
     }
@@ -263,7 +269,7 @@
       font-size: 14px; font-weight: 700; cursor: pointer;
       letter-spacing: 1px;
       transition: opacity 0.2s, transform 0.1s;
-      margin-top: auto;
+      margin-top: 4px;
     }
 
     .btn-add:hover { opacity: 0.88; transform: translateY(-1px); }
@@ -323,6 +329,13 @@
     }
 
     .btn-delete:hover { border-color: #e53e3e; color: #e53e3e; background: #fff5f5; }
+
+    @media (max-width: 1200px) {
+      body { overflow: auto; height: auto; }
+      .content-body { flex-direction: column; }
+      .right-panel { width: 100%; min-height: 220px; }
+      .charts-row, .bottom-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -408,23 +421,7 @@
 
         <div class="section-card">
           <div class="section-title">Add record</div>
-          <div class="add-form">
-            <div class="input-group">
-              <label id="addRecordLabel">Ping An account's market value</label>
-              <input type="number" placeholder="0.00" />
-            </div>
-            <div class="input-group">
-              <label>Date</label>
-              <div class="select-wrapper">
-                <select>
-                  <option>25 January 2025</option>
-                  <option>24 January 2025</option>
-                  <option>23 January 2025</option>
-                </select>
-              </div>
-            </div>
-            <button class="btn-add">ADD</button>
-          </div>
+          <form class="add-form" id="addRecordForm"></form>
         </div>
       </div>
 
@@ -439,65 +436,85 @@
 <script>
   const tabData = {
     pingan: {
-      legends: [
-        { color: '#4fd1c5', label: '沪深300' },   /* ① 深青，避免与标普500重复 */
-        { color: '#1a3a6b', label: '中证500' },
-        { color: '#63b3ed', label: '中证1000' },
-        { color: '#a0aec0', label: '标普500' },
-        { color: '#7c3aed', label: '纳指100' },   /* ① 神紫色 */
-        { color: '#9f7aea', label: '德国DAX' },
-        { color: '#68d391', label: '现金' },
-        { color: '#f6e05e', label: '黄金' },
-        { color: '#fc8181', label: '越南市场' },
+      accountName: '平安账户',
+      avatarBg: '#fde8e8',
+      avatarStroke: '#e07b7b',
+      actualAssets: [
+        { label: '沪深300', color: '#4fd1c5' },
+        { label: '中证500', color: '#1a3a6b' },
+        { label: '中证1000', color: '#63b3ed' },
+        { label: '标普500', color: '#a0aec0' },
+        { label: '纳指100', color: '#7c3aed' },
+        { label: '德国DAX', color: '#9f7aea' },
+        { label: '现金', color: '#68d391' },
+        { label: '黄金', color: '#f6e05e' },
+        { label: '越南市场', color: '#fc8181' }
       ],
-      actualData: [10, 70, 5, 3, 3, 2, 3, 2, 2],
-      targetData: [8,  70, 5, 4, 3, 2, 4, 2, 2],
-      adjRows: [
-        { no:'01.', name:'现金',    val:'$+520', ratio:'+5%',  pos:true  },
-        { no:'02.', name:'黄金',    val:'$+480', ratio:'+10%', pos:true  },
-        { no:'03.', name:'沪深300', val:'$-350', ratio:'-3%',  pos:false },
-        { no:'04.', name:'中证500', val:'$+940', ratio:'+2%',  pos:true  },
-        { no:'05.', name:'中证1000',val:'$-670', ratio:'-12%', pos:false },
-      ],
-      addLabel: "Ping An account's market value",
-      avatarBg: '#fde8e8', avatarStroke: '#e07b7b',
+      targetAssets: [
+        { label: '现金', color: '#68d391', ratio: 5 },
+        { label: '黄金', color: '#f6e05e', ratio: 5 },
+        { label: '债券基金', color: '#90cdf4', ratio: 20 },
+        { label: '标普500', color: '#a0aec0', ratio: 15 },
+        { label: '纳指100', color: '#7c3aed', ratio: 15 },
+        { label: '沪深300', color: '#4fd1c5', ratio: 15 },
+        { label: '中证500', color: '#1a3a6b', ratio: 10 },
+        { label: '中证1000', color: '#63b3ed', ratio: 5 },
+        { label: '德国DAX', color: '#9f7aea', ratio: 5 },
+        { label: '越南市场', color: '#fc8181', ratio: 5 }
+      ]
     },
     snowball: {
-      legends: [
-        { color: '#b0bec5', label: '标普500' },
-        { color: '#1a3a6b', label: '螺丝钉宝' },
-        { color: '#63b3ed', label: '纳指100' },
-        { color: '#68d391', label: '现金' },
-        { color: '#9f7aea', label: '德国DAX' },
-        { color: '#fc8181', label: '越南市场' },
-        { color: '#f6e05e', label: '黄金' },
+      accountName: '雪球账户',
+      avatarBg: '#dbeafe',
+      avatarStroke: '#3b82f6',
+      actualAssets: [
+        { label: '标普500', color: '#a0aec0' },
+        { label: '螺丝钉金钉宝指数增强', color: '#1a3a6b' },
+        { label: '纳指100', color: '#63b3ed' },
+        { label: '现金', color: '#68d391' },
+        { label: '德国DAX', color: '#9f7aea' },
+        { label: '越南市场', color: '#fc8181' },
+        { label: '黄金', color: '#f6e05e' }
       ],
-      actualData: [10, 70, 5, 3, 4, 3, 5],
-      targetData: [8,  70, 5, 5, 4, 3, 5],
-      adjRows: [
-        { no:'01.', name:'现金',    val:'$+520', ratio:'+5%',  pos:true  },
-        { no:'02.', name:'黄金',    val:'$+480', ratio:'+10%', pos:true  },
-        { no:'03.', name:'螺丝钉宝',val:'$-350', ratio:'-3%',  pos:false },
-        { no:'04.', name:'纳指100', val:'$+940', ratio:'+2%',  pos:true  },
-        { no:'05.', name:'标普500', val:'$-670', ratio:'-12%', pos:false },
-      ],
-      addLabel: "Snowball account's market value",
-      avatarBg: '#dbeafe', avatarStroke: '#3b82f6',
-    },
+      targetAssets: [
+        { label: '现金', color: '#68d391', ratio: 5 },
+        { label: '黄金', color: '#f6e05e', ratio: 5 },
+        { label: '债券基金', color: '#90cdf4', ratio: 20 },
+        { label: '标普500', color: '#a0aec0', ratio: 15 },
+        { label: '纳指100', color: '#63b3ed', ratio: 15 },
+        { label: '螺丝钉金钉宝指数增强', color: '#1a3a6b', ratio: 30 },
+        { label: '德国DAX', color: '#9f7aea', ratio: 5 },
+        { label: '越南市场', color: '#fc8181', ratio: 5 }
+      ]
+    }
   };
 
+  const STORAGE_KEY = 'portfolioRecords';
+  const FORM_DRAFTS = {};
+  const CHART_DEFAULT_DATA = [100];
+  const CHART_DEFAULT_COLOR = ['#edf2f7'];
+
+  let activeTab = 'pingan';
   let actualChart = null;
   let targetChart = null;
+  let portfolioRecords = [];
 
   function makeDonut(id, data, colors) {
+    if (typeof Chart === 'undefined') return;
     const ctx = document.getElementById(id);
     if (id === 'actualRatioChart' && actualChart) actualChart.destroy();
     if (id === 'targetRatioChart' && targetChart) targetChart.destroy();
 
+    const hasData = data.some(value => value > 0);
     const chart = new Chart(ctx, {
       type: 'doughnut',
       data: {
-        datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+        datasets: [{
+          data: hasData ? data : CHART_DEFAULT_DATA,
+          backgroundColor: hasData ? colors : CHART_DEFAULT_COLOR,
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
       },
       options: {
         responsive: true,
@@ -505,7 +522,11 @@
         cutout: '62%',
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: ctx => ` Legend ${ctx.dataIndex + 1}: ${ctx.parsed}%` } }
+          tooltip: {
+            callbacks: {
+              label: ctx => hasData ? ` ${ctx.parsed.toFixed(2)}%` : ' No data'
+            }
+          }
         }
       }
     });
@@ -527,54 +548,240 @@
       <tr>
         <td>${r.no}</td>
         <td>${r.name}</td>
-        <td>${r.val}</td>
+        <td class="${r.pos ? 'ratio-pos' : 'ratio-neg'}">${r.val}</td>
         <td class="${r.pos ? 'ratio-pos' : 'ratio-neg'}">${r.ratio}</td>
       </tr>
     `).join('');
   }
 
-  function renderList(avatarBg, avatarStroke) {
+  function getTodayDate() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  function getDateOptions() {
+    const options = [];
+    for (let i = 0; i < 30; i += 1) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      options.push(date.toISOString().split('T')[0]);
+    }
+    return options;
+  }
+
+  function currencyWithSign(value, currency = '$') {
+    const abs = Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
+    const sign = value >= 0 ? '+' : '-';
+    return `${currency}${sign}${abs}`;
+  }
+
+  function percentWithSign(value) {
+    const sign = value >= 0 ? '+' : '-';
+    return `${sign}${Math.abs(value).toFixed(2)}%`;
+  }
+
+  function parseInputValue(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 ? number : 0;
+  }
+
+  function loadRecords() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveRecords() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(portfolioRecords));
+  }
+
+  function updateDraftFromForm(tabKey) {
+    const form = document.getElementById('addRecordForm');
+    if (!form || !tabData[tabKey]) return;
+    const draft = FORM_DRAFTS[tabKey] || {};
+    tabData[tabKey].actualAssets.forEach(asset => {
+      const input = form.querySelector(`input[data-asset="${asset.label}"]`);
+      if (input) draft[asset.label] = input.value;
+    });
+    const dateSelect = form.querySelector('#recordDate');
+    if (dateSelect) draft.date = dateSelect.value;
+    FORM_DRAFTS[tabKey] = draft;
+  }
+
+  function computeActualRatio(tabKey, details) {
+    const assets = tabData[tabKey].actualAssets;
+    const total = assets.reduce((sum, asset) => sum + (details[asset.label] || 0), 0);
+    if (total <= 0) return assets.map(() => 0);
+    return assets.map(asset => ((details[asset.label] || 0) / total) * 100);
+  }
+
+  function computeAdjustmentRows(tabKey, details) {
+    const total = Object.values(details).reduce((sum, value) => sum + value, 0);
+    return tabData[tabKey].targetAssets.map((asset, index) => {
+      const currentValue = details[asset.label] || 0;
+      const targetValue = (asset.ratio / 100) * total;
+      const adjustValue = targetValue - currentValue;
+      const ratioValue = currentValue === 0 ? null : (adjustValue / currentValue) * 100;
+      return {
+        no: `${String(index + 1).padStart(2, '0')}.`,
+        name: asset.label,
+        val: currencyWithSign(adjustValue),
+        ratio: ratioValue === null ? '—' : percentWithSign(ratioValue),
+        pos: adjustValue >= 0
+      };
+    });
+  }
+
+  function getLatestRecordForTab(tabKey) {
+    return portfolioRecords.find(record => record.account === tabKey) || null;
+  }
+
+  function getDetailsFromDraft(tabKey) {
+    const draft = FORM_DRAFTS[tabKey] || {};
+    return tabData[tabKey].actualAssets.reduce((acc, asset) => {
+      acc[asset.label] = parseInputValue(draft[asset.label]);
+      return acc;
+    }, {});
+  }
+
+  function renderList() {
     const list = document.getElementById('recordList');
     list.innerHTML = '';
-    Array.from({ length: 12 }).forEach(() => {
+
+    portfolioRecords.forEach(record => {
+      const accountConfig = tabData[record.account];
+      if (!accountConfig) return;
       const item = document.createElement('div');
       item.className = 'record-item';
       item.innerHTML = `
-        <div class="record-avatar" style="background:${avatarBg}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="${avatarStroke}" stroke-width="2">
+        <div class="record-avatar" style="background:${accountConfig.avatarBg}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="${accountConfig.avatarStroke}" stroke-width="2">
             <circle cx="12" cy="8" r="4"/>
             <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
           </svg>
         </div>
         <div class="record-info">
-          <div class="record-name">Ping An Account</div>
+          <div class="record-name">${accountConfig.accountName}</div>
           <div class="record-sub">current value</div>
         </div>
-        <div class="record-amount">$10,000,000</div>
+        <div class="record-amount">¥${Number(record.totalValue || 0).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}</div>
         <button class="btn-delete">Delete</button>
       `;
       item.querySelector('.btn-delete').addEventListener('click', () => {
-        item.style.transition = 'opacity 0.3s';
-        item.style.opacity = '0';
-        setTimeout(() => item.remove(), 300);
+        portfolioRecords = portfolioRecords.filter(entry => entry.id !== record.id);
+        saveRecords();
+        renderList();
+        if (record.account === activeTab) {
+          updateView(activeTab);
+        }
       });
       list.appendChild(item);
     });
   }
 
-  function switchTab(tabKey) {
-    const d = tabData[tabKey];
-    const colors = d.legends.map(l => l.color);
-    renderLegend('actualLegend', d.legends);
-    renderLegend('targetLegend', d.legends);
-    makeDonut('actualRatioChart', d.actualData, colors);
-    makeDonut('targetRatioChart', d.targetData, colors);
-    renderAdjTable(d.adjRows);
-    document.getElementById('addRecordLabel').textContent = d.addLabel;
-    renderList(d.avatarBg, d.avatarStroke);
+  function renderForm(tabKey) {
+    const form = document.getElementById('addRecordForm');
+    const config = tabData[tabKey];
+    const draft = FORM_DRAFTS[tabKey] || {};
+    const dateOptions = getDateOptions();
+
+    if (!draft.date) {
+      draft.date = getTodayDate();
+      FORM_DRAFTS[tabKey] = draft;
+    }
+
+    form.innerHTML = `
+      ${config.actualAssets.map(asset => `
+        <div class="input-group">
+          <label>${asset.label}</label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            data-asset="${asset.label}"
+            placeholder="0.00"
+            value="${draft[asset.label] || ''}"
+          />
+        </div>
+      `).join('')}
+      <div class="input-group">
+        <label>日期</label>
+        <div class="select-wrapper">
+          <select id="recordDate">
+            ${dateOptions.map(date => `<option value="${date}" ${date === draft.date ? 'selected' : ''}>${date}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <button class="btn-add" type="submit">ADD</button>
+    `;
+
+    form.querySelectorAll('input[data-asset]').forEach(input => {
+      input.addEventListener('input', () => updateDraftFromForm(tabKey));
+    });
+    form.querySelector('#recordDate').addEventListener('change', () => updateDraftFromForm(tabKey));
+    form.onsubmit = event => {
+      event.preventDefault();
+      addRecord(tabKey);
+    };
   }
 
-  switchTab('pingan');
+  function addRecord(tabKey) {
+    const form = document.getElementById('addRecordForm');
+    const config = tabData[tabKey];
+    const details = {};
+
+    config.actualAssets.forEach(asset => {
+      const input = form.querySelector(`input[data-asset="${asset.label}"]`);
+      details[asset.label] = parseInputValue(input ? input.value : 0);
+    });
+
+    const dateSelect = form.querySelector('#recordDate');
+    const totalValue = Object.values(details).reduce((sum, value) => sum + value, 0);
+    const record = {
+      id: String(Date.now()),
+      account: tabKey,
+      date: dateSelect ? dateSelect.value : getTodayDate(),
+      totalValue,
+      details
+    };
+
+    portfolioRecords.unshift(record);
+    saveRecords();
+
+    FORM_DRAFTS[tabKey] = { date: getTodayDate() };
+    renderForm(tabKey);
+    updateView(tabKey);
+    renderList();
+  }
+
+  function updateView(tabKey) {
+    const config = tabData[tabKey];
+    const latestRecord = getLatestRecordForTab(tabKey);
+    const details = latestRecord ? latestRecord.details : getDetailsFromDraft(tabKey);
+    const actualData = computeActualRatio(tabKey, details);
+    const adjustmentRows = computeAdjustmentRows(tabKey, details);
+
+    renderLegend('actualLegend', config.actualAssets);
+    renderLegend('targetLegend', config.targetAssets);
+    makeDonut('actualRatioChart', actualData, config.actualAssets.map(item => item.color));
+    makeDonut('targetRatioChart', config.targetAssets.map(item => item.ratio), config.targetAssets.map(item => item.color));
+    renderAdjTable(adjustmentRows);
+  }
+
+  function switchTab(tabKey) {
+    updateDraftFromForm(activeTab);
+    activeTab = tabKey;
+    renderForm(tabKey);
+    updateView(tabKey);
+  }
+
+  portfolioRecords = loadRecords();
+  renderList();
+  switchTab(activeTab);
 
   document.querySelectorAll('.page-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -585,16 +792,16 @@
   });
 
   document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const links = {
-      'Real-time Dashboard': 'Dashboard.html',
-      'Asset record': 'asset-record.html',
-      'All-weather portfolio': 'all-weather-portfolio.html'
-    };
-    const text = item.textContent.trim();
-    if (links[text]) window.location.href = links[text];
+    item.addEventListener('click', () => {
+      const links = {
+        'Real-time Dashboard': 'Dashboard.html',
+        'Asset record': 'asset-record.html',
+        'All-weather portfolio': 'all-weather-portfolio.html'
+      };
+      const text = item.textContent.trim();
+      if (links[text]) window.location.href = links[text];
+    });
   });
-});
 </script>
 </body>
 </html>
