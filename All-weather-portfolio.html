@@ -421,7 +421,7 @@
 
         <div class="section-card">
           <div class="section-title">Add record</div>
-          <form class="add-form" id="addRecordForm"></form>
+          <form class="add-form" id="addRecordForm" aria-label="Add portfolio record"></form>
         </div>
       </div>
 
@@ -524,7 +524,7 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: ctx => hasData ? ` ${ctx.parsed.toFixed(2)}%` : ' No data'
+              label: ctx => hasData ? `${ctx.parsed.toFixed(2)}%` : 'No data'
             }
           }
         }
@@ -591,6 +591,7 @@
       const parsed = JSON.parse(saved);
       return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
+      console.error('Failed to parse portfolio records:', error);
       return [];
     }
   }
@@ -742,7 +743,7 @@
     const dateSelect = form.querySelector('#recordDate');
     const totalValue = Object.values(details).reduce((sum, value) => sum + value, 0);
     const record = {
-      id: String(Date.now()),
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       account: tabKey,
       date: dateSelect ? dateSelect.value : getTodayDate(),
       totalValue,
