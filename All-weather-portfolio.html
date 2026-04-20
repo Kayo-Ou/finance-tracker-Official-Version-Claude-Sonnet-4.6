@@ -206,6 +206,38 @@
 
     .section-title { font-size: 15px; font-weight: 700; color: #1a2340; margin-bottom: 12px; flex-shrink: 0; }
 
+    .adj-table-wrap {
+      height: 280px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .adj-table-wrap::-webkit-scrollbar,
+    .add-form::-webkit-scrollbar,
+    .record-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .adj-table-wrap::-webkit-scrollbar-track,
+    .add-form::-webkit-scrollbar-track,
+    .record-list::-webkit-scrollbar-track {
+      background: #f3f6fc;
+      border-radius: 10px;
+    }
+
+    .adj-table-wrap::-webkit-scrollbar-thumb,
+    .add-form::-webkit-scrollbar-thumb,
+    .record-list::-webkit-scrollbar-thumb {
+      background: #c8d3ea;
+      border-radius: 10px;
+    }
+
+    .adj-table-wrap::-webkit-scrollbar-thumb:hover,
+    .add-form::-webkit-scrollbar-thumb:hover,
+    .record-list::-webkit-scrollbar-thumb:hover {
+      background: #b5c4e3;
+    }
+
     .adj-table { width: 100%; border-collapse: collapse; }
 
     .adj-table thead th {
@@ -221,8 +253,8 @@
 
     .adj-table tbody tr:last-child td { border-bottom: none; }
 
-    .ratio-pos { color: #ff6b9d; font-weight: 600; }
-    .ratio-neg { color: #52c41a; font-weight: 600; }
+    .adj-table tbody td.ratio-pos { color: #e53e3e; font-weight: 600; }
+    .adj-table tbody td.ratio-neg { color: #52c41a; font-weight: 600; }
 
     .add-form {
       display: flex;
@@ -247,20 +279,6 @@
 
     .input-group input:focus, .input-group select:focus {
       border-color: #2d3a6b; color: #1a2340;
-    }
-
-    .select-wrapper { position: relative; }
-
-    .select-wrapper select {
-      width: 100%; cursor: pointer; color: #4a5568;
-      appearance: none; -webkit-appearance: none;
-    }
-
-    .select-wrapper::after {
-      content: '⌄';
-      position: absolute; right: 12px; top: 50%;
-      transform: translateY(-50%);
-      color: #7b8db0; pointer-events: none;
     }
 
     .btn-add {
@@ -315,9 +333,24 @@
     .record-name { font-size: 14px; font-weight: 600; color: #1a2340; white-space: nowrap; }
     .record-sub { font-size: 12px; color: #3b5bdb; margin-top: 3px; }
 
+    .record-values {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+      margin-right: 10px;
+      align-self: flex-start;
+    }
+
     .record-amount {
       font-size: 14px; font-weight: 600; color: #1a2340;
-      flex-shrink: 0; margin-right: 10px; white-space: nowrap;
+      flex-shrink: 0; white-space: nowrap;
+    }
+
+    .record-date {
+      font-size: 12px;
+      color: #7b8db0;
+      white-space: nowrap;
     }
 
     .btn-delete {
@@ -409,14 +442,16 @@
       <div class="bottom-row">
         <div class="section-card">
           <div class="section-title">Adjustment Suggestions</div>
-          <table class="adj-table">
-            <thead>
-              <tr>
-                <th>No</th><th>Name</th><th>Adjusted value</th><th>Adjust ratio</th>
-              </tr>
-            </thead>
-            <tbody id="adjTableBody"></tbody>
-          </table>
+          <div class="adj-table-wrap">
+            <table class="adj-table">
+              <thead>
+                <tr>
+                  <th>No</th><th>Name</th><th>Adjusted value</th><th>Adjust ratio</th>
+                </tr>
+              </thead>
+              <tbody id="adjTableBody"></tbody>
+            </table>
+          </div>
         </div>
 
         <div class="section-card">
@@ -558,16 +593,6 @@
     return new Date().toISOString().split('T')[0];
   }
 
-  function getDateOptions() {
-    const options = [];
-    for (let i = 0; i < 30; i += 1) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      options.push(date.toISOString().split('T')[0]);
-    }
-    return options;
-  }
-
   function currencyWithSign(value, currency = '$') {
     const abs = Math.abs(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
     const sign = value >= 0 ? '+' : '-';
@@ -608,8 +633,8 @@
       const input = form.querySelector(`input[data-asset="${asset.label}"]`);
       if (input) draft[asset.label] = input.value;
     });
-    const dateSelect = form.querySelector('#recordDate');
-    if (dateSelect) draft.date = dateSelect.value;
+    const dateInput = form.querySelector('#recordDate');
+    if (dateInput) draft.date = dateInput.value;
     FORM_DRAFTS[tabKey] = draft;
   }
 
@@ -653,12 +678,14 @@
     const list = document.getElementById('recordList');
     list.innerHTML = '';
 
-    portfolioRecords.forEach(record => {
-      const accountConfig = tabData[record.account];
-      if (!accountConfig) return;
-      const item = document.createElement('div');
-      item.className = 'record-item';
-      item.innerHTML = `
+    portfolioRecords
+      .filter(record => record.account === activeTab)
+      .forEach(record => {
+        const accountConfig = tabData[record.account];
+        if (!accountConfig) return;
+        const item = document.createElement('div');
+        item.className = 'record-item';
+        item.innerHTML = `
         <div class="record-avatar" style="background:${accountConfig.avatarBg}">
           <svg viewBox="0 0 24 24" fill="none" stroke="${accountConfig.avatarStroke}" stroke-width="2">
             <circle cx="12" cy="8" r="4"/>
@@ -669,33 +696,38 @@
           <div class="record-name">${accountConfig.accountName}</div>
           <div class="record-sub">current value</div>
         </div>
-        <div class="record-amount">¥${Number(record.totalValue || 0).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}</div>
+        <div class="record-values">
+          <div class="record-amount">¥${Number(record.totalValue || 0).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}</div>
+          <div class="record-date">${record.date || getTodayDate()}</div>
+        </div>
         <button class="btn-delete">Delete</button>
-      `;
-      item.querySelector('.btn-delete').addEventListener('click', () => {
-        portfolioRecords = portfolioRecords.filter(entry => entry.id !== record.id);
-        saveRecords();
-        renderList();
-        if (record.account === activeTab) {
-          updateView(activeTab);
-        }
+        `;
+        item.querySelector('.btn-delete').addEventListener('click', () => {
+          portfolioRecords = portfolioRecords.filter(entry => entry.id !== record.id);
+          saveRecords();
+          renderList();
+          if (record.account === activeTab) {
+            updateView(activeTab);
+          }
+        });
+        list.appendChild(item);
       });
-      list.appendChild(item);
-    });
   }
 
   function renderForm(tabKey) {
     const form = document.getElementById('addRecordForm');
     const config = tabData[tabKey];
     const draft = FORM_DRAFTS[tabKey] || {};
-    const dateOptions = getDateOptions();
-
     if (!draft.date) {
       draft.date = getTodayDate();
       FORM_DRAFTS[tabKey] = draft;
     }
 
     form.innerHTML = `
+      <div class="input-group">
+        <label>Date</label>
+        <input type="date" id="recordDate" value="${draft.date}" />
+      </div>
       ${config.actualAssets.map(asset => `
         <div class="input-group">
           <label>${asset.label}</label>
@@ -709,14 +741,6 @@
           />
         </div>
       `).join('')}
-      <div class="input-group">
-        <label>日期</label>
-        <div class="select-wrapper">
-          <select id="recordDate">
-            ${dateOptions.map(date => `<option value="${date}" ${date === draft.date ? 'selected' : ''}>${date}</option>`).join('')}
-          </select>
-        </div>
-      </div>
       <button class="btn-add" type="submit">ADD</button>
     `;
 
@@ -776,8 +800,12 @@
   function switchTab(tabKey) {
     updateDraftFromForm(activeTab);
     activeTab = tabKey;
+    const nextDraft = FORM_DRAFTS[tabKey] || {};
+    nextDraft.date = getTodayDate();
+    FORM_DRAFTS[tabKey] = nextDraft;
     renderForm(tabKey);
     updateView(tabKey);
+    renderList();
   }
 
   portfolioRecords = loadRecords();
