@@ -69,7 +69,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 32px 28px 28px 28px;
+      padding: 32px 36px;
       overflow: hidden;
       min-width: 0;
     }
@@ -78,19 +78,41 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
       flex-shrink: 0;
     }
 
     .topbar h1 { font-size: 26px; font-weight: 700; color: #1a2340; }
 
-    .avatar-placeholder {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #c9a96e, #a0784a);
-      border: 2px solid #e8ecf5;
-      flex-shrink: 0;
-    }
+    .avatar-wrapper {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.avatar-wrapper img,
+.avatar-wrapper svg {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #e8ecf5;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-wrapper:hover::after {
+  content: '📷';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
 
     .page-tabs {
       display: flex;
@@ -403,9 +425,16 @@
 
 <main class="main">
   <div class="topbar">
-    <h1>All-weather portfolio</h1>
-    <div class="avatar-placeholder"></div>
+  <h1>All-weather portfolio</h1>
+  <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5" id="avatarDefault">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+    </svg>
+    <img id="avatarImg" style="display:none" src="" alt="avatar" />
+    <input type="file" id="avatarInput" accept="image/*" style="display:none" />
   </div>
+</div>
 
   <div class="page-tabs">
     <div class="page-tab active" data-tab="pingan">Ping An Account</div>
@@ -833,6 +862,29 @@
       if (links[text]) window.location.href = links[text];
     });
   });
+
+  // ── 头像管理 ──
+const savedAvatar = localStorage.getItem('userAvatar');
+if (savedAvatar) {
+  document.getElementById('avatarDefault').style.display = 'none';
+  const img = document.getElementById('avatarImg');
+  img.src = savedAvatar;
+  img.style.display = 'block';
+}
+
+document.getElementById('avatarInput').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('avatarDefault').style.display = 'none';
+    const img = document.getElementById('avatarImg');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    localStorage.setItem('userAvatar', e.target.result);
+  };
+  reader.readAsDataURL(file);
+});
 </script>
 </body>
 </html>
