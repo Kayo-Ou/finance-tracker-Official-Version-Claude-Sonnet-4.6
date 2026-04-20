@@ -681,11 +681,11 @@
     portfolioRecords
       .filter(record => record.account === activeTab)
       .forEach(record => {
-      const accountConfig = tabData[record.account];
-      if (!accountConfig) return;
-      const item = document.createElement('div');
-      item.className = 'record-item';
-      item.innerHTML = `
+        const accountConfig = tabData[record.account];
+        if (!accountConfig) return;
+        const item = document.createElement('div');
+        item.className = 'record-item';
+        item.innerHTML = `
         <div class="record-avatar" style="background:${accountConfig.avatarBg}">
           <svg viewBox="0 0 24 24" fill="none" stroke="${accountConfig.avatarStroke}" stroke-width="2">
             <circle cx="12" cy="8" r="4"/>
@@ -701,16 +701,16 @@
           <div class="record-date">${record.date || getTodayDate()}</div>
         </div>
         <button class="btn-delete">Delete</button>
-      `;
-      item.querySelector('.btn-delete').addEventListener('click', () => {
-        portfolioRecords = portfolioRecords.filter(entry => entry.id !== record.id);
-        saveRecords();
-        renderList();
-        if (record.account === activeTab) {
-          updateView(activeTab);
-        }
-      });
-      list.appendChild(item);
+        `;
+        item.querySelector('.btn-delete').addEventListener('click', () => {
+          portfolioRecords = portfolioRecords.filter(entry => entry.id !== record.id);
+          saveRecords();
+          renderList();
+          if (record.account === activeTab) {
+            updateView(activeTab);
+          }
+        });
+        list.appendChild(item);
       });
   }
 
