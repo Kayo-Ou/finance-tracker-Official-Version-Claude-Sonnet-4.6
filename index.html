@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Personal Finance Stats</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="icon">🏛️</span>
+      <span>Personal finance stats</span>
+    </div>
+    <div class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+        <path d="M9 21V12h6v9" />
+      </svg>
+      Real-time Dashboard
+    </div>
+    <div class="nav-item" data-page="asset-record">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M8 17V13M12 17V9M16 17V11" />
+      </svg>
+      Asset record
+    </div>
+    <div class="nav-item" data-page="all-weather-portfolio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9" />
+        <path d="M16 3l5 5-5 5" />
+      </svg>
+      All-weather portfolio
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- 顶部栏和头像 -->
+    <div class="topbar">
+      <h1 id="main-title">Dashboard</h1>
+      <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5" id="avatarDefault">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
+        <img id="avatarImg" style="display:none" src="" alt="avatar" />
+        <input type="file" id="avatarInput" accept="image/*" />
+      </div>
+    </div>
+
+    <!-- Dashboard 页面内容 -->
+    <section id="dashboard-section">
+      <div class="chart-grid">
+        <div class="chart-card">
+          <h2>Total Assets</h2>
+          <div class="chart-wrap">
+            <canvas id="totalAssetsChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h2>Asset Distribution</h2>
+          <div class="pie-body">
+            <div class="pie-wrap">
+              <canvas id="assetPieChart"></canvas>
+            </div>
+            <div class="compound-card">
+              <div class="compound-icon">🔄</div>
+              <div class="compound-label">Compound<br>Growth Rate</div>
+              <div class="compound-value">--</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h2>Cash Flow</h2>
+          <div class="chart-wrap">
+            <canvas id="cashFlowChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h2>Month-on-month Growth</h2>
+          <div class="bar-legend">
+            <span><span class="legend-dot" style="background:#FF6B9D"></span>Increase</span>
+            <span><span class="legend-dot" style="background:#00D4B8"></span>Decrease</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="momChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Asset-record 页面内容 -->
+    <section id="asset-record-section" style="display:none">
+      <div class="add-record-card">
+        <div class="section-title">Add record</div>
+        <div class="input-grid">
+          <div class="input-group">
+            <label>平安银行总值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>平安证券总值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>支付宝总值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>农业银行总值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>Date</label>
+            <input type="date" id="inputDate" />
+          </div>
+          <div class="input-group">
+            <label>平安银行基金市值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>平安证券基金市值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>支付宝基金市值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>雪球基金市值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+          <div class="input-group">
+            <label>顺丰控股市值</label>
+            <input type="number" placeholder="0.00" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-add">ADD</button>
+          <button class="btn btn-import">Import</button>
+          <button class="btn btn-export">Export</button>
+        </div>
+      </div>
+      <div class="file-inputs">
+        <input type="file" id="avatarInputAsset" accept="image/*" />
+        <input type="file" id="importInput" accept=".json" />
+      </div>
+      <div class="inventory-card">
+        <div class="section-title">Asset Inventory</div>
+        <div class="tabs">
+          <div class="tab active">Total account value</div>
+          <div class="tab">Fund market value</div>
+          <div class="tab">Stock value</div>
+          <div class="tab">Accounting stats</div>
+        </div>
+        <div class="table-wrap">
+          <table id="table-total">
+            <thead>
+              <tr>
+                <th>SL No</th>
+                <th>Date</th>
+                <th>平安银行总值</th>
+                <th>平安证券总值</th>
+                <th>支付宝总值</th>
+                <th>农业银行总值</th>
+                <th>Operation</th>
+              </tr>
+            </thead>
+            <tbody id="recordTableBody"></tbody>
+          </table>
+          <table id="table-fund" style="display:none">
+            <thead>
+              <tr>
+                <th>SL No</th>
+                <th>Date</th>
+                <th>平安银行基金市值</th>
+                <th>平安证券基金市值</th>
+                <th>支付宝基金市值</th>
+                <th>雪球基金市值</th>
+                <th>Operation</th>
+              </tr>
+            </thead>
+            <tbody id="fundTableBody"></tbody>
+          </table>
+          <table id="table-stock" style="display:none">
+            <thead>
+              <tr>
+                <th>SL No</th>
+                <th>Date</th>
+                <th>顺丰控股市值</th>
+                <th>Operation</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody"></tbody>
+          </table>
+          <table id="table-accounting" style="display:none">
+            <thead>
+              <tr>
+                <th>SL No</th>
+                <th>Date</th>
+                <th>Cash Flow</th>
+                <th>Fund</th>
+                <th>Stock</th>
+                <th>Total Assets</th>
+                <th>Operation</th>
+              </tr>
+            </thead>
+            <tbody id="accountingTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- All-weather-portfolio 页面内容 -->
+    <section id="all-weather-portfolio-section" style="display:none">
+      <div class="page-tabs">
+        <div class="page-tab active" data-tab="pingan">Ping An Account</div>
+        <div class="page-tab" data-tab="snowball">Snowball Account</div>
+      </div>
+      <div class="content-body">
+        <div class="left-panel">
+          <div class="charts-row">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <span>Actual ratio</span>
+                <span class="more-btn">···</span>
+              </div>
+              <div class="chart-legend" id="actualLegend"></div>
+              <div class="donut-wrap">
+                <canvas id="actualRatioChart"></canvas>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <span>Target ratio</span>
+                <span class="more-btn">···</span>
+              </div>
+              <div class="chart-legend" id="targetLegend"></div>
+              <div class="donut-wrap">
+                <canvas id="targetRatioChart"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-row">
+            <div class="section-card">
+              <div class="section-title">Adjustment Suggestions</div>
+              <div class="adj-table-wrap">
+                <table class="adj-table">
+                  <thead>
+                    <tr>
+                      <th>No</th><th>Name</th><th>Adjusted value</th><th>Adjust ratio</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adjTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="section-card">
+              <div class="section-title">Add record</div>
+              <form class="add-form" id="addRecordForm" aria-label="Add portfolio record"></form>
+            </div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <div class="record-list" id="recordList"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="Javascript.js"></script>
+</body>
+</html>
