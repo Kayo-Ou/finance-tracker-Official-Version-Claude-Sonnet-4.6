@@ -646,5 +646,17 @@ function initializePage() {
   setupAvatar();
 }
 
+// === 模拟点击左侧 Dashboard 菜单（仅在 SPA 切换场景安全）===
+setTimeout(() => {
+  // 找到左侧“Real-time Dashboard”按钮（按你的 DOM 结构选择器）
+  const dashBtn = document.querySelector('.nav-item[data-page="dashboard"], .nav-item.active, .nav-item');
+  if (dashBtn) {
+    // 如果点击会跳转到 Dashboard.html，请不要使用此方案（会离开 index.html）
+    try { dashBtn.click(); } catch (e) { /* ignore */ }
+  } else {
+    window.dispatchEvent(new Event('resize'));
+  }
+}, 120);
+
 // 在DOM加载完成后执行初始化
 document.addEventListener('DOMContentLoaded', initializePage);
